@@ -13,9 +13,8 @@ class EnvSettings(BaseSettings):
     DEBUG: bool = False
     DATABASE_URL: str
 
-    # Segredos 
-    """SECRET_KEY: str
-    STRIPE_API_KEY: str"""
+    SUPABASE_URL: str
+    SUPABASE_KEY: str
 
 # Instância global para uso em toda a aplicação
 thi_settings = EnvSettings()

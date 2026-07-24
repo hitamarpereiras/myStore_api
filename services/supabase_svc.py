@@ -1,13 +1,11 @@
 from supabase import create_client
-from dotenv import load_dotenv
 from datetime import datetime
-import os
 import uuid
+from ..config import EnvSettings
 
-load_dotenv()
 
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
+url = EnvSettings.SUPABASE_URL
+key = EnvSettings.SUPABASE_KEY
 
 
 if not url or not key:
