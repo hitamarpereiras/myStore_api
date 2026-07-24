@@ -1,11 +1,11 @@
 from supabase import create_client
 from datetime import datetime
 import uuid
-from ..config import EnvSettings
+from config import thi_settings
 
 
-url = EnvSettings.SUPABASE_URL
-key = EnvSettings.SUPABASE_KEY
+url = thi_settings.SUPABASE_URL
+key = thi_settings.SUPABASE_KEY
 
 
 if not url or not key:
