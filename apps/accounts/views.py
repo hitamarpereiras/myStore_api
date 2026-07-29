@@ -13,4 +13,4 @@ class AccountViewSet(ModelViewSet):
         if user.is_superuser:
             return User.objects.all().order_by('-id')
 
-        return User.objects.filter(user=user).order_by('-id')
+        return User.objects.filter(pk=user.pk).order_by('-id')
