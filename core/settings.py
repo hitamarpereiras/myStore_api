@@ -189,6 +189,10 @@ JAZZMIN_SETTINGS = {
 
     "site_icon": "img/logo.jpg",
 
+    "site_logo": "img/logo.jpg",
+
+    "login_logo": "img/logo.jpg",
+
     # Copyright on the footer
     "copyright": "Hitamar Silva®",
 
