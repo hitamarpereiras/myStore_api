@@ -20,15 +20,13 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://mystore-api-n1f9.onrender.com",
-    "http://localhost:3000",     # se tiver frontend local
-    "http://127.0.0.1:3000",
+    "http://localhost:5500",     # se tiver frontend local
     "http://127.0.0.1:5500",
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "https://mystore-api-n1f9.onrender.com",
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:5500",
     "http://127.0.0.1:5500",
 ]
 
@@ -63,7 +61,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
