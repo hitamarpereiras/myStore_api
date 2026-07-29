@@ -20,7 +20,17 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "https://mystore-api-n1f9.onrender.com",
+    "http://localhost:3000",     # se tiver frontend local
+    "http://127.0.0.1:3000",
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://mystore-api-n1f9.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Application definition
