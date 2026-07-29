@@ -180,3 +180,18 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True, # Gera um novo  refresh token a cada refresh 
     'BLACKLIST_AFTER_ROTATION': True, # Invalida o refresh token antigo após a rotação
 }
+
+
+# interface django admin
+
+JAZZMIN_SETTINGS = {
+    "site_title": "My Store API",
+
+    # Copyright on the footer
+    "copyright": "Hitamar Silva",
+
+    # Menu
+     "topmenu_links": [
+         {"app": "apps.stores"},
+     ]
+}
