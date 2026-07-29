@@ -13,8 +13,9 @@ SECRET_KEY = 'django-insecure-!myuvwl4g*rp8ugg9^u$k=ow$!a(ro-78exi+-oihv8xy^cyqm
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'localhost',
-    'https://mystore-api-n1f9.onrender.com'
+    "mystore-api-n1f9.onrender.com",
+    "localhost",
+    "127.0.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
