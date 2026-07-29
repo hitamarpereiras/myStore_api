@@ -1,0 +1,150 @@
+{
+  "info": {
+    "_postman_id": "922c1879-cc4f-4231-b96e-31a0b2b8d3e6",
+    "name": "My Store API",
+    "description": "Collection para testar a API My Store. Configure `email`, `password` e, antes de criar/atualizar loja, selecione uma imagem local de no máximo 1 MB no campo `image`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000", "type": "string" },
+    { "key": "email", "value": "", "type": "string" },
+    { "key": "password", "value": "", "type": "string" },
+    { "key": "access_token", "value": "", "type": "string" },
+    { "key": "refresh_token", "value": "", "type": "string" },
+    { "key": "account_id", "value": "", "type": "string" },
+    { "key": "store_id", "value": "", "type": "string" },
+    { "key": "cnpj", "value": "12.345.678/0001-90", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login — obter tokens",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/authentication/token/",
+            "description": "Use as credenciais de um usuário já criado no Django Admin. Salva access_token e refresh_token automaticamente."
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body).to.have.property('access');", "pm.expect(body).to.have.property('refresh');", "pm.collectionVariables.set('access_token', body.access);", "pm.collectionVariables.set('refresh_token', body.refresh);"] } }]
+        },
+        {
+          "name": "Renovar access token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/authentication/token/refresh/"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body).to.have.property('access');", "pm.collectionVariables.set('access_token', body.access);", "if (body.refresh) pm.collectionVariables.set('refresh_token', body.refresh);"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Contas",
+      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+      "item": [
+        {
+          "name": "Listar contas",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "if (rows && rows.length) pm.collectionVariables.set('account_id', rows[0].id);"] } }]
+        },
+        {
+          "name": "Consultar conta por ID",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Criar conta",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"nova-conta@example.com\",\n  \"first_name\": \"Nova\",\n  \"last_name\": \"Conta\",\n  \"telephone\": \"11999999999\",\n  \"is_active\": true\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/accounts/",
+            "description": "A API não expõe senha neste serializer; use o Django Admin para definir uma senha antes de fazer login com a nova conta."
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('account_id', pm.response.json().id);"] } }]
+        },
+        {
+          "name": "Atualizar conta parcialmente",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"telephone\": \"11988887777\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/accounts/{{account_id}}/"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Excluir conta — destrutivo",
+          "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/", "description": "Atenção: remove permanentemente a conta indicada." },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Lojas",
+      "item": [
+        {
+          "name": "Listar lojas — público",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "if (rows && rows.length) pm.collectionVariables.set('store_id', rows[0].id);"] } }]
+        },
+        {
+          "name": "Filtrar lojas por CNPJ — público",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/?cnpj={{cnpj}}" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Consultar loja por ID — público",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/{{store_id}}/" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Criar loja",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+          "request": {
+            "method": "POST",
+            "body": { "mode": "formdata", "formdata": [
+              { "key": "name", "value": "Loja de Teste", "type": "text" },
+              { "key": "phone", "value": "11999999999", "type": "text" },
+              { "key": "address", "value": "Rua de Teste, 123", "type": "text" },
+              { "key": "cnpj", "value": "{{cnpj}}", "type": "text" },
+              { "key": "instagram_url", "value": "https://instagram.com/minha_loja", "type": "text" },
+              { "key": "facebook_url", "value": "https://facebook.com/minha_loja", "type": "text" },
+              { "key": "other_url", "value": "https://example.com", "type": "text" },
+              { "key": "image", "type": "file", "src": "" }
+            ] },
+            "url": "{{base_url}}/api/v1/stores/",
+            "description": "Antes de enviar, escolha um arquivo de imagem válido (máximo 1 MB) no campo image."
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.expect(pm.response.json().message).to.eql('Loja criada com sucesso');"] } }]
+        },
+        {
+          "name": "Localizar loja recém-criada",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/?cnpj={{cnpj}}", "description": "Execute após criar a loja. Salva o primeiro ID retornado para os testes de atualização e exclusão." },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "pm.expect(rows).to.not.be.empty;", "pm.collectionVariables.set('store_id', rows[0].id);"] } }]
+        },
+        {
+          "name": "Atualizar loja parcialmente",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Loja de Teste Atualizada\",\n  \"phone\": \"11988887777\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/stores/{{store_id}}/"
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().message).to.eql('Loja atualizada com sucesso');"] } }]
+        },
+        {
+          "name": "Excluir loja — destrutivo",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+          "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/stores/{{store_id}}/", "description": "Atenção: remove a loja e tenta remover sua imagem do Supabase." },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
+        }
+      ]
+    }
+  ]
+}
