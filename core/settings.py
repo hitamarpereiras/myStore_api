@@ -187,8 +187,10 @@ SIMPLE_JWT = {
 JAZZMIN_SETTINGS = {
     "site_title": "My Store API",
 
+    "site_icon": "static/logo.jpg",
+
     # Copyright on the footer
-    "copyright": "Hitamar Silva",
+    "copyright": "Hitamar Silva®",
 
     # Menu
      "topmenu_links": [
