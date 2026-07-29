@@ -192,6 +192,11 @@ JAZZMIN_SETTINGS = {
 
     # Menu
      "topmenu_links": [
-         {"app": "apps.stores"},
-     ]
+        {"app": "stores"},
+        {"name": "Suporte", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
+
+     ],
+
+    # Construtor de interface
+    "show_ui_builder": True,
 }
