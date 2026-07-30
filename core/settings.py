@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
     'apps.authentication',
     'apps.accounts',
+    'apps.categories',
     'apps.stores',
 ]
 
