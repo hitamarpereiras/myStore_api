@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'apps.accounts',
     'apps.categories',
     'apps.stores',
+    'apps.products',
 ]
 
 MIDDLEWARE = [
@@ -169,6 +170,9 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
 
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.DefaultPagination',
+    'PAGE_SIZE': 40,
+
 }
 
 SIMPLE_JWT = {
@@ -196,7 +200,7 @@ JAZZMIN_SETTINGS = {
     # Menu
      "topmenu_links": [
         {"app": "stores"},
-        {"name": "Suporte", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
+        {"name": "Suporte", "url": "https://github.com/hitamarpereiras", "new_window": True},
 
      ],
 
