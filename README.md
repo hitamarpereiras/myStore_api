@@ -164,6 +164,7 @@ Para criar uma loja, envie `multipart/form-data`. No estado atual da API, o camp
 | Campo | Tipo | Observação |
 | --- | --- | --- |
 | `name` | texto | Obrigatório |
+| `slog` | texto | Opcional; máximo de 150 caracteres |
 | `phone`, `address`, `cnpj` | texto | Opcionais |
 | `instagram_url`, `facebook_url`, `other_url` | URL | Opcionais |
 | `image` | arquivo | Enviar como multipart; até 1 MB |
@@ -176,6 +177,7 @@ Exemplo:
 curl -X POST http://127.0.0.1:8000/api/v1/stores/ \
   -H "Authorization: Bearer <access_token>" \
   -F "name=Minha Loja" \
+  -F "slog=Tudo para sua casa" \
   -F "cnpj=12.345.678/0001-90" \
   -F "image=@./avatar.png"
 ```
