@@ -204,11 +204,13 @@ Filtros disponíveis: `name`, `owner` e `store`.
 
 Todos os endpoints de produtos exigem JWT. Usuários comuns visualizam e administram somente produtos dos quais são proprietários; superusuários podem visualizar todos os produtos.
 
-A listagem aceita os filtros `category`, `price` e `name`. Usuários comuns também podem restringir o resultado à loja com o parâmetro `store`:
+A listagem aceita os filtros `category`, `price`, `name` e `store`. Para carregar os produtos de uma loja específica, o front-end deve enviar o ID da loja no parâmetro `store`:
 
 ```text
-GET /api/v1/products/?store=ABC123&category=2&page=1&page_size=14
+GET /api/v1/products/?store=abc123
 ```
+
+O filtro `store` também pode ser combinado com paginação e os demais filtros, por exemplo: `GET /api/v1/products/?store=abc123&category=2&page=1&page_size=14`. Usuários comuns recebem somente produtos das próprias lojas; superusuários podem consultar produtos de qualquer loja.
 
 Na criação, envie `multipart/form-data` e inclua a imagem do produto. O arquivo deve ser uma imagem válida de até 1 MB; a API o converte para JPEG de 1024 × 1024 px e o armazena no bucket `products` do Supabase.
 

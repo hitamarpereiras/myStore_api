@@ -4,6 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import QuerySet
 
 from apps.products.models import Product
 from apps.products.serializers import ProductSerializer
@@ -35,23 +36,25 @@ class ProductViewSet(ModelViewSet):
         'name',
     ]
 
-    def get_queryset(self):
-        user = self.request.user
-        store_id = self.request.query_params.get('store')
 
-        print(f"User: {user}, Store ID: {store_id}")
+    def get_queryset(self) -> QuerySet:
+        user = self.request.user
+        store_id = self.request.query_params.get("store")
+
+        queryset = Product.objects.select_related("store")
 
         if user.is_superuser:
-            return Product.objects.all().order_by('created_at')
-        
-        queryset = Product.objects.filter(
-            owner=user
-        ).order_by('-created_at')
+            if store_id:
+                queryset = queryset.filter(store_id=store_id)
+
+            return queryset.order_by("-created_at")
+
+        queryset = queryset.filter(store__owner=user)
 
         if store_id:
-            queryset = queryset.filter(store=store_id).order_by('created_at')
+            queryset = queryset.filter(store_id=store_id)
 
-        return queryset
+        return queryset.order_by("-created_at")
 
 
     def create(self, request, *args, **kwargs):
