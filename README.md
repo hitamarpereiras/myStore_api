@@ -2,7 +2,7 @@
 
 # My Store API
 
-<p>API REST para gerenciamento de lojas, categorias e contas da plataforma <strong>My Store</strong>.</p>
+<p>API REST para gerenciamento de lojas, produtos, categorias e contas da plataforma <strong>My Store</strong>.</p>
 
 ![Python](https://img.shields.io/badge/Python-3.12%2B-1f3a5f?style=flat-square&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-6.0-1f3a5f?style=flat-square&logo=django&logoColor=white)
@@ -14,7 +14,7 @@
 
 ## Visão geral
 
-O projeto oferece autenticação JWT, administração pelo Django Admin e recursos para contas, lojas e categorias. As lojas podem receber um avatar: a imagem é redimensionada para 300 × 300 px, enviada ao Supabase Storage e usada para gerar uma paleta de cores.
+O projeto oferece autenticação JWT, administração pelo Django Admin e recursos para contas, lojas, categorias e produtos. Lojas e produtos aceitam imagens, que são processadas e armazenadas no Supabase Storage.
 
 | Camada | Tecnologia |
 | --- | --- |
@@ -140,7 +140,10 @@ Base URL local: `http://127.0.0.1:8000`
 | Contas | `/api/v1/accounts/` e `/api/v1/accounts/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Lojas | `/api/v1/stores/` e `/api/v1/stores/{id}/` | Leitura pública; escrita JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
+
+As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 itens por página, com `?page=` e `?page_size=` (máximo de 80). Produtos utilizam 14 itens por página e aceitam `page_size` de até 28.
 
 ### Contas
 
@@ -194,6 +197,46 @@ Filtros disponíveis: `name`, `owner` e `store`.
 ```
 
 `store` é opcional e referencia o ID de uma loja. O nome da categoria é único em toda a base de dados.
+
+### Produtos
+
+Todos os endpoints de produtos exigem JWT. Usuários comuns visualizam e administram somente produtos dos quais são proprietários; superusuários podem visualizar todos os produtos.
+
+A listagem aceita os filtros `category`, `price` e `name`. Usuários comuns também podem restringir o resultado à loja com o parâmetro `store`:
+
+```text
+GET /api/v1/products/?store=ABC123&category=2&page=1&page_size=14
+```
+
+Na criação, envie `multipart/form-data` e inclua a imagem do produto. O arquivo deve ser uma imagem válida de até 1 MB; a API o converte para JPEG de 1024 × 1024 px e o armazena no bucket `products` do Supabase.
+
+| Campo | Tipo | Observação |
+| --- | --- | --- |
+| `store` | ID da loja | Obrigatório |
+| `name` | texto | Obrigatório; máximo de 100 caracteres |
+| `category` | lista de IDs | Obrigatório; uma ou mais categorias |
+| `description` | texto | Opcional; máximo de 320 caracteres |
+| `price` | decimal | Opcional; padrão `0.00` |
+| `stock` | inteiro | Opcional; padrão `0` |
+| `image` | arquivo | Enviar como multipart; até 1 MB |
+| `crop_x`, `crop_y`, `crop_width`, `crop_height` | inteiro | Opcionais; metadados de recorte para o front-end |
+| `owner` | — | Definido automaticamente pelo token |
+| `image_url`, `image_path` | — | Gerados pela API e somente leitura |
+
+Exemplo:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/products/ \
+  -H "Authorization: Bearer <access_token>" \
+  -F "store=ABC123" \
+  -F "name=Fone Bluetooth" \
+  -F "category=2" \
+  -F "price=199.90" \
+  -F "stock=10" \
+  -F "image=@./fone.png"
+```
+
+Ao criar, atualizar ou excluir um produto, a API retorna uma mensagem de confirmação. Na troca ou exclusão, ela tenta remover a imagem anterior do Supabase.
 
 ## Postman
 
