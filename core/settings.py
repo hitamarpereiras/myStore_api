@@ -14,12 +14,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "mystore-api-n1f9.onrender.com",
+    "adm-loja.vercel.app",
     "localhost",
     "127.0.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://mystore-api-n1f9.onrender.com",
+    "https://adm-loja.vercel.app",
     "http://localhost:5500",     # se tiver frontend local
     "http://127.0.0.1:5500",
 ]
