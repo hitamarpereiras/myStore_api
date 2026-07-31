@@ -28,6 +28,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://mystore-api-n1f9.onrender.com",
+    "https://adm-loja.vercel.app",
     "http://localhost:5500",
     "http://127.0.0.1:5500",
 ]
