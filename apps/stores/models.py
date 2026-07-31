@@ -18,7 +18,16 @@ class Store(models.Model):
         related_name='stores',
         verbose_name='Proprietário'
     )
-    name = models.CharField(max_length=100, verbose_name='Nome')
+    name = models.CharField(
+        max_length=100, 
+        verbose_name='Nome'
+    )
+    slog = models.CharField(
+        null=True,
+        blank=True,
+        max_length=150,
+        verbose_name='Slogan'
+    )
     phone = models.CharField(
         max_length=15,
         blank=True,
