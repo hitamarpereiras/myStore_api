@@ -2,7 +2,7 @@
 
 # My Store API
 
-<p>API REST para gerenciamento de lojas, produtos, categorias e contas da plataforma <strong>My Store</strong>.</p>
+<p>API REST para gerenciamento de lojas, produtos, categorias, pedidos e contas da plataforma <strong>My Store</strong>.</p>
 
 ![Python](https://img.shields.io/badge/Python-3.12%2B-1f3a5f?style=flat-square&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-6.0-1f3a5f?style=flat-square&logo=django&logoColor=white)
@@ -14,7 +14,7 @@
 
 ## Visão geral
 
-O projeto oferece autenticação JWT, administração pelo Django Admin e recursos para contas, lojas, categorias e produtos. Lojas e produtos aceitam imagens, que são processadas e armazenadas no Supabase Storage.
+O projeto oferece autenticação JWT, administração pelo Django Admin e recursos para contas, lojas, categorias, produtos e pedidos. Lojas e produtos aceitam imagens, que são processadas e armazenadas no Supabase Storage.
 
 | Camada | Tecnologia |
 | --- | --- |
@@ -90,7 +90,7 @@ O usuário personalizado utiliza o **e-mail** para autenticação; informe tamb�
 python manage.py runserver
 ```
 
-A API local estará disponível em `http://127.0.0.1:8000/`, e o painel administrativo em `http://127.0.0.1:8000/adm/`.
+A API estará disponível na URL configurada para o ambiente. Nos exemplos abaixo, substitua `{{BASE_URL}}` pela URL da sua API, por exemplo `https://api.exemplo.com`.
 
 ## Autenticação JWT
 
@@ -99,7 +99,7 @@ A API local estará disponível em `http://127.0.0.1:8000/`, e o painel administ
 Envie o e-mail e a senha de um usuário existente:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/authentication/token/ \
+curl -X POST {{BASE_URL}}/api/v1/authentication/token/ \
   -H "Content-Type: application/json" \
   -d '{
     "email": "seu_email@example.com",
@@ -117,21 +117,21 @@ curl -X POST http://127.0.0.1:8000/api/v1/authentication/token/ \
 Use o token de acesso nas rotas protegidas:
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/categories/ \
+curl {{BASE_URL}}/api/v1/categories/ \
   -H "Authorization: Bearer <access_token>"
 ```
 
 O access token expira em 15 dias. O refresh token expira em 20 dias; ao renová-lo, um novo refresh token é emitido e o anterior é invalidado.
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/authentication/token/refresh/ \
+curl -X POST {{BASE_URL}}/api/v1/authentication/token/refresh/ \
   -H "Content-Type: application/json" \
   -d '{"refresh": "<refresh_token>"}'
 ```
 
 ## Rotas da API
 
-Base URL local: `http://127.0.0.1:8000`
+Base URL: `{{BASE_URL}}`
 
 | Recurso | Rota | Acesso | Métodos |
 | --- | --- | --- | --- |
@@ -141,6 +141,7 @@ Base URL local: `http://127.0.0.1:8000`
 | Lojas | `/api/v1/stores/` e `/api/v1/stores/{id}/` | Leitura pública; escrita JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| Pedidos | `/api/v1/orders/` e `/api/v1/orders/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
 
 As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 itens por página, com `?page=` e `?page_size=` (máximo de 80). Produtos utilizam 14 itens por página e aceitam `page_size` de até 28.
@@ -174,7 +175,7 @@ Para criar uma loja, envie `multipart/form-data`. No estado atual da API, o camp
 Exemplo:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/stores/ \
+curl -X POST {{BASE_URL}}/api/v1/stores/ \
   -H "Authorization: Bearer <access_token>" \
   -F "name=Minha Loja" \
   -F "slog=Tudo para sua casa" \
@@ -230,7 +231,7 @@ Na criação, envie `multipart/form-data` e inclua a imagem do produto. O arquiv
 Exemplo:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/products/ \
+curl -X POST {{BASE_URL}}/api/v1/products/ \
   -H "Authorization: Bearer <access_token>" \
   -F "store=ABC123" \
   -F "name=Fone Bluetooth" \
@@ -242,13 +243,36 @@ curl -X POST http://127.0.0.1:8000/api/v1/products/ \
 
 Ao criar, atualizar ou excluir um produto, a API retorna uma mensagem de confirmação. Na troca ou exclusão, ela tenta remover a imagem anterior do Supabase.
 
+### Pedidos
+
+Todos os endpoints de pedidos exigem JWT. A listagem retorna os pedidos da loja associada ao usuário autenticado; clientes visualizam apenas os próprios pedidos. Os filtros disponíveis são `created_at`, `code` e `total`:
+
+```text
+GET /api/v1/orders/?code=12345
+GET /api/v1/orders/?total=49.90
+```
+
+| Campo | Tipo | Observação |
+| --- | --- | --- |
+| `customer` | ID da conta | Cliente vinculado ao pedido |
+| `name_customer`, `phone` | texto | Obrigatórios |
+| `address` | texto | Obrigatório |
+| `house_number`, `observation` | texto | Opcionais |
+| `latitude`, `longitude` | decimal | Opcionais; localização de entrega |
+| `subtotal`, `rate_delivery`, `total`, `remaining` | decimal | Valores monetários do pedido e troco |
+| `payment_method` | texto | Opcional |
+| `itens` | JSON | Lista de itens do pedido |
+| `status` | texto | `pending`, `delivered` ou `canceled`; padrão `pending` |
+| `code` | texto | Código de entrega gerado para o pedido |
+| `created_at` | data e hora | Gerado pela API; somente leitura |
+
 ## Postman
 
 Há uma coleção pronta em [postman/My_Store_API.postman_collection.json](postman/My_Store_API.postman_collection.json). Importe-a no Postman, preencha as variáveis `email` e `password` e execute o login para armazenar automaticamente os tokens. Antes de criar ou atualizar uma loja com imagem, selecione um arquivo local no campo `image`.
 
 ## Administração
 
-Com o servidor em execução, acesse [http://127.0.0.1:8000/adm/](http://127.0.0.1:8000/adm/) usando o superusuário criado anteriormente.
+Com o servidor em execução, acesse `{{BASE_URL}}/adm/` usando o superusuário criado anteriormente.
 
 ---
 
