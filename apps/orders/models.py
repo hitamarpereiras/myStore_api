@@ -23,13 +23,14 @@ class Order(models.Model):
         verbose_name='Cliente',
         db_index=True,
     )
-    delivery_man = models.ForeignKey(
-        on_delete=models.SET_NULL,
+    """delivery_man = models.ForeignKey(  # Ainda não implemntado
+        DeliveryMan,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="orders",
         verbose_name='Entregador'
-    )
+    )"""
     name_customer = models.CharField(
         max_length=100,
         verbose_name='Nome do cliente'
