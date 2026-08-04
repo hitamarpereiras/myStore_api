@@ -31,6 +31,7 @@ class StoreViewSet(ModelViewSet):
         'cnpj',
     ]
 
+    # retorna apenas o que pertence ao usuario
     def get_queryset(self):
         user = self.request.user
 
