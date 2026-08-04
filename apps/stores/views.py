@@ -31,17 +31,13 @@ class StoreViewSet(ModelViewSet):
         'cnpj',
     ]
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [AllowAny()]
-
-        return [IsAuthenticated()]
-
     def get_queryset(self):
-        if self.action in ['list', 'retrieve']:
+        user = self.request.user
+
+        if user.is_superuser:
             return Store.objects.all().order_by('-created_at')
 
-        return Store.objects.filter(owner=self.request.user).order_by('-created_at')
+        return Store.objects.filter(owner=user.pk).order_by('-created_at')
 
 
     def create(self, request, *args, **kwargs):
