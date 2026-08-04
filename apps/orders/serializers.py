@@ -27,6 +27,14 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = [
+            'status',
             'created_at', 
             'updated_at'
         ]
+
+class ConfirmDeliverySerializer(serializers.Serializer):
+    code = serializers.CharField(
+        max_length=4,
+        min_length=4,
+        required=True
+    )
