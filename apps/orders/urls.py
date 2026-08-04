@@ -7,6 +7,6 @@ router = DefaultRouter()
 router.register(r'orders', OrderViewSet)
 
 urlpatterns = [
-    path('orders/confirm-delivery', ConfirmDelivery.as_view(), name='confirm-delivery'),
+    path('orders/<str:pk>/confirm-delivery', ConfirmDelivery.as_view(), name='confirm-delivery'),
     path('', include(router.urls)),
 ]

@@ -143,7 +143,7 @@ Base URL: `{{BASE_URL}}`
 | Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Pedidos | `/api/v1/orders/` e `/api/v1/orders/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Confirmar entrega | `/api/v1/orders/confirm-delivery` | JWT | `POST` |
+| Confirmar entrega | `/api/v1/orders/{id}/confirm-delivery` | JWT | `POST` |
 | Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
 
 As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 itens por página, com `?page=` e `?page_size=` (máximo de 80). Produtos utilizam 14 itens por página e aceitam `page_size` de até 28.
@@ -276,17 +276,29 @@ GET /api/v1/orders/?total=49.90
 | `latitude`, `longitude` | decimal | Opcionais; localização de entrega |
 | `subtotal`, `rate_delivery`, `total`, `remaining` | decimal | Valores monetários do pedido e troco |
 | `payment_method` | texto | Opcional |
-| `itens` | JSON | Lista de itens do pedido |
+| `itens` | JSON | Obrigatório; lista de produtos do pedido, cada um com `id`, `name` e `quantity` |
 | `status` | texto | Somente leitura; `pending`, `delivered` ou `canceled`; padrão `pending` |
 | `code` | texto | Código de entrega de 4 caracteres, gerado para o pedido |
 | `created_at` | data e hora | Gerado pela API; somente leitura |
+
+O campo `itens` deve ser enviado como uma lista JSON. Exemplo:
+
+```json
+[
+  {
+    "id": 5,
+    "name": "Mouse",
+    "quantity": 2
+  }
+]
+```
 
 #### Confirmação de entrega
 
 A confirmação exige JWT e valida um código de entrega de quatro caracteres enviado no corpo da requisição:
 
 ```bash
-curl -X POST {{BASE_URL}}/api/v1/orders/confirm-delivery \
+curl -X POST {{BASE_URL}}/api/v1/orders/{id}/confirm-delivery \
   -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{"code": "a1b2"}'
@@ -300,9 +312,7 @@ Quando a confirmação é aceita, a API retorna `200 OK`:
 }
 ```
 
-O código é obrigatório e deve conter exatamente quatro caracteres. A confirmação é permitida somente para o entregador vinculado ao pedido e para pedidos pendentes; código inválido, pedido já processado ou falta de permissão retornam erro.
-
-> **Observação de implementação:** a view de confirmação atual espera o identificador do pedido (`pk`), mas a rota registrada não o recebe. Portanto, a rota precisará incluir esse identificador para que a confirmação possa ser executada.
+Substitua `{id}` pelo identificador do pedido. O código é obrigatório e deve conter exatamente quatro caracteres. A confirmação é permitida somente para o entregador vinculado ao pedido e para pedidos pendentes; código inválido, pedido já processado ou falta de permissão retornam erro.
 
 ## Postman
 
