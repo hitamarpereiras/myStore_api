@@ -1,11 +1,11 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.serializers import UserCreateSerializer
 from apps.accounts.models import User
 
 class AccountViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
+    serializer_class = UserCreateSerializer
 
     def get_queryset(self):
         user = self.request.user
