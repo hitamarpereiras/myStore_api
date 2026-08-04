@@ -276,8 +276,8 @@ GET /api/v1/orders/?total=49.90
 | `latitude`, `longitude` | decimal | Opcionais; localização de entrega |
 | `subtotal`, `rate_delivery`, `total`, `remaining` | decimal | Valores monetários do pedido e troco |
 | `payment_method` | texto | Opcional |
-| `itens` | JSON | Obrigatório; lista de produtos do pedido, cada um com `id`, `name` e `quantity` |
-| `status` | texto | Somente leitura; `pending`, `delivered` ou `canceled`; padrão `pending` |
+| `itens` | JSON | Obrigatório; lista de produtos do pedido, cada um com `id`, `name`, `price` e `quantity` |
+| `status` | texto | Somente leitura; `pendente`, `entregue` ou `cancelado`; padrão `pendente` |
 | `code` | texto | Código de entrega de 4 caracteres, gerado para o pedido |
 | `created_at` | data e hora | Gerado pela API; somente leitura |
 
@@ -288,6 +288,7 @@ O campo `itens` deve ser enviado como uma lista JSON. Exemplo:
   {
     "id": 5,
     "name": "Mouse",
+    "price": 19.00,
     "quantity": 2
   }
 ]
