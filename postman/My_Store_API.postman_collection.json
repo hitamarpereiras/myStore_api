@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "922c1879-cc4f-4231-b96e-31a0b2b8d3e6",
     "name": "My Store API",
-    "description": "Collection para testar a API My Store. Configure `email`, `password` e, antes de criar/atualizar loja, selecione uma imagem local de no máximo 1 MB no campo `image`.",
+    "description": "Coleção para testar a API My Store. Configure `email` e `password`; para criar ou trocar a imagem de uma loja, selecione um arquivo local de no máximo 1 MB no campo `image`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -48,24 +48,25 @@
       "item": [
         {
           "name": "Listar contas",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/" },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "if (rows && rows.length) pm.collectionVariables.set('account_id', rows[0].id);"] } }]
-        },
-        {
-          "name": "Consultar conta por ID",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/" },
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/", "description": "A resposta atual não inclui o ID. Para consultar ou atualizar pelo detalhe, preencha manualmente a variável account_id." },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
         },
         {
-          "name": "Criar conta",
+          "name": "Consultar conta por ID",
+          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/", "description": "Informe account_id manualmente; o serializer de contas não devolve esse campo." },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "Cadastrar conta — somente administrador",
+          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"nova-conta@example.com\",\n  \"first_name\": \"Nova\",\n  \"last_name\": \"Conta\",\n  \"telephone\": \"11999999999\",\n  \"is_active\": true\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/accounts/",
-            "description": "A API não expõe senha neste serializer; use o Django Admin para definir uma senha antes de fazer login com a nova conta."
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"nova-conta@example.com\",\n  \"username\": \"nova_conta\",\n  \"password\": \"uma-senha-segura\",\n  \"first_name\": \"Nova\",\n  \"last_name\": \"Conta\",\n  \"telephone\": \"11999999999\"\n}", "options": { "raw": { "language": "json" } } },
+            "url": "{{base_url}}/api/v1/accounts/register/",
+            "description": "Requer token de superusuário. A senha é usada apenas no cadastro e não é devolvida pela API."
           },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('account_id', pm.response.json().id);"] } }]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));"] } }]
         },
         {
           "name": "Atualizar conta parcialmente",
@@ -76,11 +77,6 @@
             "url": "{{base_url}}/api/v1/accounts/{{account_id}}/"
           },
           "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
-        },
-        {
-          "name": "Excluir conta — destrutivo",
-          "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/", "description": "Atenção: remove permanentemente a conta indicada." },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
         }
       ]
     },
@@ -120,7 +116,7 @@
             "url": "{{base_url}}/api/v1/stores/",
             "description": "Antes de enviar, escolha um arquivo de imagem válido (máximo 1 MB) no campo image."
           },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.expect(pm.response.json().message).to.eql('Loja criada com sucesso');"] } }]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.expect(pm.response.json()).to.have.property('id');"] } }]
         },
         {
           "name": "Localizar loja recém-criada",
@@ -136,7 +132,7 @@
             "body": { "mode": "raw", "raw": "{\n  \"name\": \"Loja de Teste Atualizada\",\n  \"phone\": \"11988887777\"\n}", "options": { "raw": { "language": "json" } } },
             "url": "{{base_url}}/api/v1/stores/{{store_id}}/"
           },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().message).to.eql('Loja atualizada com sucesso');"] } }]
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json()).to.have.property('id');"] } }]
         },
         {
           "name": "Excluir loja — destrutivo",

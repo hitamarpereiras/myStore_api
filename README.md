@@ -137,7 +137,8 @@ Base URL: `{{BASE_URL}}`
 | --- | --- | --- | --- |
 | Tokens JWT | `/api/v1/authentication/token/` | Público | `POST` |
 | Renovação JWT | `/api/v1/authentication/token/refresh/` | Público | `POST` |
-| Contas | `/api/v1/accounts/` e `/api/v1/accounts/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| Contas | `/api/v1/accounts/` e `/api/v1/accounts/{id}/` | JWT | `GET`, `PATCH` |
+| Cadastro de contas | `/api/v1/accounts/register/` | Administrador JWT | `POST` |
 | Lojas | `/api/v1/stores/` e `/api/v1/stores/{id}/` | Leitura pública; escrita JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
@@ -148,7 +149,22 @@ As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 it
 
 ### Contas
 
-O retorno de uma conta contém `id`, `email`, `first_name`, `last_name`, `is_active` e `telephone`; a senha não é exposta pelo serializer. Usuários comuns consultam apenas a própria conta, enquanto superusuários podem consultar todas. Para definir ou alterar senhas, use o Django Admin.
+`GET /api/v1/accounts/` e `GET /api/v1/accounts/{id}/` exigem JWT. Usuários comuns consultam apenas a própria conta; superusuários podem consultar todas. As únicas operações permitidas nesse recurso são `GET` e `PATCH` — não há `POST`, `PUT` nem `DELETE`.
+
+O retorno contém `email`, `username`, `first_name`, `last_name` e `telephone`; a senha nunca é exposta. É possível atualizar parcialmente esses campos com `PATCH`, mas não alterar a senha por essa rota.
+
+O cadastro é feito em `POST /api/v1/accounts/register/` e exige um token de superusuário. Envie `email`, `username` e `password`; `first_name`, `last_name` e `telephone` são opcionais.
+
+```bash
+curl -X POST {{BASE_URL}}/api/v1/accounts/register/ \
+  -H "Authorization: Bearer <admin_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "nova-conta@example.com",
+    "username": "nova_conta",
+    "password": "uma-senha-segura"
+  }'
+```
 
 ### Lojas
 
@@ -160,17 +176,16 @@ Os filtros aceitos na listagem são `id`, `owner` e `cnpj`:
 GET /api/v1/stores/?cnpj=12.345.678/0001-90
 ```
 
-Para criar uma loja, envie `multipart/form-data`. No estado atual da API, o campo `image` deve ser enviado na criação. O arquivo deve ser uma imagem válida de até 1 MB; ele é convertido para JPEG, redimensionado e armazenado no bucket `avatar_lojas`.
+Para criar uma loja, envie `multipart/form-data` com o campo `image`. O arquivo deve ser uma imagem válida de até 1 MB; ele é convertido para JPEG, redimensionado e armazenado no bucket `avatar_lojas`.
 
 | Campo | Tipo | Observação |
 | --- | --- | --- |
 | `name` | texto | Obrigatório |
-| `slog` | texto | Opcional; máximo de 150 caracteres |
 | `phone`, `address`, `cnpj` | texto | Opcionais |
 | `instagram_url`, `facebook_url`, `other_url` | URL | Opcionais |
 | `image` | arquivo | Enviar como multipart; até 1 MB |
 | `owner` | — | Definido automaticamente pelo token |
-| `avatar_url`, `color_palette` | — | Gerados pela API e somente leitura |
+| `avatar_url`, `color_palette`, `created_at`, `updated_at` | — | Gerados pela API e somente leitura |
 
 Exemplo:
 
@@ -178,12 +193,11 @@ Exemplo:
 curl -X POST {{BASE_URL}}/api/v1/stores/ \
   -H "Authorization: Bearer <access_token>" \
   -F "name=Minha Loja" \
-  -F "slog=Tudo para sua casa" \
   -F "cnpj=12.345.678/0001-90" \
   -F "image=@./avatar.png"
 ```
 
-Ao criar, atualizar ou excluir uma loja, a API retorna uma mensagem de confirmação. Na troca ou exclusão, ela tenta remover o avatar anterior do Supabase.
+As operações de criação e atualização retornam a representação da loja. A exclusão retorna `204 No Content`. Na troca ou exclusão, a API tenta remover o avatar anterior do Supabase.
 
 ### Categorias
 

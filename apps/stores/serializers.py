@@ -12,6 +12,7 @@ class StoreSerializer(serializers.ModelSerializer):
             'id',
             'owner',
             'name',
+            'slog',
             'phone',
             'address',
             'cnpj',
