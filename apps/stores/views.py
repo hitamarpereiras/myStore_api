@@ -71,7 +71,7 @@ class StoreViewSet(ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-        serializer.save(
+        store = serializer.save(
             owner=request.user,
             avatar_url=avatar_url,
             avatar_path=avatar_path,
@@ -79,7 +79,7 @@ class StoreViewSet(ModelViewSet):
         )
 
         return Response(
-            {"message": "Loja criada com sucesso"},
+            self.get_serializer(store).data,
             status=status.HTTP_201_CREATED
         )
 
@@ -135,12 +135,12 @@ class StoreViewSet(ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
-        serializer.save(
+        store = serializer.save(
             owner=request.user,
         )
 
         return Response(
-            {"message": "Loja atualizada com sucesso"},
+            self.get_serializer(store).data,
             status=status.HTTP_200_OK
         )
 
