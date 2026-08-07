@@ -120,21 +120,17 @@ class StoreViewSet(ModelViewSet):
                 avatar_url = upload["url"]
                 avatar_path = upload["path"]
 
-                serializer.save(
-                    owner=request.user,
-                    avatar_url=avatar_url,
-                    avatar_path=avatar_path,
-                    color_palette=pallette_colors
-                )
-
             except Exception as e:
                 return Response(
                     {"message": f"Erro ao processar a imagem: {str(e)}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-        
-        store = serializer.save(
+
+        serializer.save(
             owner=request.user,
+            avatar_url=avatar_url,
+            avatar_path=avatar_path,
+            color_palette=pallette_colors
         )
 
         return Response(
