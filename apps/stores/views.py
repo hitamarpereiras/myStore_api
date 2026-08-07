@@ -84,6 +84,7 @@ class StoreViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        print(f"HERE => => {instance}")
 
         serializer = self.get_serializer(
             instance,
