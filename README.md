@@ -142,6 +142,7 @@ Base URL: `{{BASE_URL}}`
 | Lojas | `/api/v1/stores/` e `/api/v1/stores/{id}/` | Leitura pública; escrita JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
+| Vendas | `/api/v1/sales/` e `/api/v1/sales/{id}/` | JWT + `X-Store-ID` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Pedidos | `/api/v1/orders/` e `/api/v1/orders/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Confirmar entrega | `/api/v1/orders/{id}/confirm-delivery` | JWT | `POST` |
 | Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
@@ -257,6 +258,53 @@ curl -X POST {{BASE_URL}}/api/v1/products/ \
 ```
 
 Ao criar, atualizar ou excluir um produto, a API retorna uma mensagem de confirmação. Na troca ou exclusão, ela tenta remover a imagem anterior do Supabase.
+
+### Vendas
+
+Todos os endpoints de vendas exigem JWT e o header `X-Store-ID`. O front-end deve enviar nele o ID da loja que está sendo utilizada no momento. Esse header é obrigatório também para consultar, atualizar ou excluir uma venda individual.
+
+```text
+X-Store-ID: ABC123
+```
+
+A API valida que a loja indicada pertence ao usuário autenticado. Portanto, não envie `store` nem `account` no corpo da requisição: ambos são definidos pelo backend a partir do header e do token JWT. As listagens retornam somente vendas da loja selecionada e do usuário autenticado.
+
+| Campo | Tipo | Observação |
+| --- | --- | --- |
+| `order` | ID do pedido | Obrigatório; um pedido pode estar vinculado a somente uma venda |
+| `total`, `subtotal`, `remaining`, `rate_delivery` | decimal | Opcionais; padrão `0.00` |
+| `payment_method` | texto | Opcional; máximo de 15 caracteres |
+| `collaborator` | texto | Opcional; máximo de 50 caracteres |
+| `observation` | texto | Opcional; máximo de 200 caracteres |
+| `status` | booleano | Opcional; padrão `false` |
+| `account`, `store`, `created_at`, `updated_at` | — | Definidos pela API; não enviar no payload |
+
+Exemplo de criação:
+
+```bash
+curl -X POST {{BASE_URL}}/api/v1/sales/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "X-Store-ID: ABC123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "order": 42,
+    "subtotal": "90.00",
+    "rate_delivery": "10.00",
+    "total": "100.00",
+    "payment_method": "pix",
+    "collaborator": "Maria"
+  }'
+```
+
+Para listar ou acessar uma venda, mantenha os dois headers:
+
+```bash
+curl {{BASE_URL}}/api/v1/sales/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "X-Store-ID: ABC123"
+```
+
+Se `X-Store-ID` não for enviado, a API retorna `403 Forbidden` informando que o header é obrigatório. O mesmo status é retornado quando a loja não pertence ao usuário autenticado. Uma venda que não pertença à loja selecionada não é exposta pela API.
 
 ### Pedidos
 
