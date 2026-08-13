@@ -82,8 +82,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         if user.is_customer:
             return qs.filter(customer__user=user)
 
-        if user.is_delivery:
-            return qs.filter(delivery_man__user=user)
+        """if user.is_delivery:
+            return qs.filter(delivery_man__user=user)"""
 
         if user.is_store:
             return qs

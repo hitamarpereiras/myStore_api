@@ -144,7 +144,7 @@ Base URL: `{{BASE_URL}}`
 | Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Vendas | `/api/v1/sales/` e `/api/v1/sales/{id}/` | JWT + `X-Store-ID` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
 | Pedidos | `/api/v1/orders/` e `/api/v1/orders/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Confirmar entrega | `/api/v1/orders/{id}/confirm-delivery` | JWT | `POST` |
+| Confirmar entrega | `/api/v1/orders/{id}/confirm-delivery` | JWT do entregador responsável | `POST` |
 | Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
 
 As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 itens por página, com `?page=` e `?page_size=` (máximo de 80). Produtos utilizam 14 itens por página e aceitam `page_size` de até 28.
@@ -344,7 +344,15 @@ O campo `itens` deve ser enviado como uma lista JSON. Exemplo:
 
 #### Confirmação de entrega
 
-A confirmação exige JWT e valida um código de entrega de quatro caracteres enviado no corpo da requisição:
+Use esta rota quando o entregador concluir a entrega de um pedido. Ela valida o código informado pelo cliente e, se todas as regras forem atendidas, altera o status do pedido de `pendente` para `entregue`.
+
+```text
+POST /api/v1/orders/{id}/confirm-delivery
+```
+
+> A rota não termina com `/`. Substitua `{id}` pelo identificador do pedido.
+
+Envie um JWT no header `Authorization` e um JSON contendo o código de entrega. O campo `code` é obrigatório e deve ter exatamente quatro caracteres:
 
 ```bash
 curl -X POST {{BASE_URL}}/api/v1/orders/{id}/confirm-delivery \
@@ -361,7 +369,21 @@ Quando a confirmação é aceita, a API retorna `200 OK`:
 }
 ```
 
-Substitua `{id}` pelo identificador do pedido. O código é obrigatório e deve conter exatamente quatro caracteres. A confirmação é permitida somente para o entregador vinculado ao pedido e para pedidos pendentes; código inválido, pedido já processado ou falta de permissão retornam erro.
+A confirmação só é concluída quando todas as condições abaixo forem verdadeiras:
+
+- O token pertence ao entregador vinculado ao pedido.
+- O pedido ainda está com o status `pendente`.
+- O valor enviado em `code` é igual ao código de entrega do pedido.
+
+Se uma condição não for atendida, o status do pedido não é alterado. As respostas possíveis são:
+
+| Status | Quando ocorre | Exemplo de resposta |
+| --- | --- | --- |
+| `200 OK` | Entrega confirmada e status alterado para `entregue`. | `{ "detail": "Entrega confirmada com sucesso." }` |
+| `400 Bad Request` | O `code` está ausente, não tem quatro caracteres, é inválido ou o pedido não está pendente. | `{ "detail": "Código inválido." }` |
+| `401 Unauthorized` | O token JWT não foi enviado ou não é válido. | — |
+| `403 Forbidden` | O usuário autenticado não é o entregador responsável pelo pedido. | `{ "detail": "Você não pode confirmar este pedido." }` |
+| `404 Not Found` | Não existe pedido com o `{id}` informado. | — |
 
 ## Postman
 
