@@ -48,3 +48,9 @@ class Customer(models.Model):
         auto_now=True,
         verbose_name='Atualizado em',
     )
+
+    class Meta:
+        verbose_name = 'Cliente'
+        verbose_name_plural = 'Clientes'
+        ordering = ['-created_at']
+

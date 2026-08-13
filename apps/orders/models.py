@@ -4,9 +4,9 @@ from apps.stores.models import Store
 from services.idgenerator_svc import generate_Code
 
 class OrderStatus(models.TextChoices):
-    PENDENTE = "pendente", "Pendente"
-    ENTREGUE = "entregue", "Entregue"
-    CANCELADO = "cancelado", "Cancelado"
+    PENDING = "pendente", "Pendente"
+    DELIVERED = "entregue", "Entregue"
+    CANCELED = "cancelado", "Cancelado"
 
 
 class Order(models.Model):
