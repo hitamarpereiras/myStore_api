@@ -14,7 +14,7 @@ class SaleSerializer(serializers.ModelSerializer):
             'rate_delivery',
             'account',
             'order',
-            'sotre',
+            'store',
             'collaborator',
             'observation',
             'status',
