@@ -24,7 +24,7 @@ class ConfirmDelivery(APIView):
         order = get_object_or_404(Order, pk=pk)
 
         # Verifica se o pedido pertence ao entregador
-        if order.delivery_man.user != request.user:
+        """if order.delivery_man.user != request.user:
             return Response(
                 {
                     "detail": (
@@ -32,7 +32,7 @@ class ConfirmDelivery(APIView):
                     )
                 },
                 status=status.HTTP_403_FORBIDDEN
-            )
+            )"""
 
         # Só permite confirmar pedidos pendentes
         if order.status != "pendente":
