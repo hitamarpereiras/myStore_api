@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from apps.orders.serializers import OrderSerializer, ConfirmDeliverySerializer
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import PermissionDenied
+from apps.stores.models import Store
 
 
 class ConfirmDelivery(APIView):
@@ -67,25 +69,54 @@ class ConfirmDelivery(APIView):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all().order_by('-created_at')
+
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['created_at', 'code', 'total']
+    filterset_fields = ["created_at", "code", "total"]
+
+    def get_store(self):
+
+        store_id = self.request.headers.get("X-Store-ID")
+
+        if not store_id:
+            raise PermissionDenied(
+                "O header X-Store-ID é obrigatório."
+            )
+
+        try:
+            return Store.objects.get(
+                id=store_id,
+                owner=self.request.user
+            )
+        except Store.DoesNotExist:
+            raise PermissionDenied(
+                "Você não tem acesso a esta loja."
+            )
 
     def get_queryset(self):
-        user = self.request.user
 
-        qs = Order.objects.filter(store=user.store)
+        store = self.get_store()
 
-        if user.is_customer:
-            return qs.filter(customer__user=user)
+        qs = Order.objects.filter(
+            store=store
+        )
 
-        """if user.is_delivery:
-            return qs.filter(delivery_man__user=user)"""
+        if self.request.user.is_customer:
+            return qs.filter(
+                customer__user=self.request.user
+            )
 
-        if user.is_store:
+        if self.request.user.is_store:
             return qs
 
         return Order.objects.none()
+
+    def perform_create(self, serializer):
+
+        store = self.get_store()
+
+        serializer.save(
+            store=store
+        )
