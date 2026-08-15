@@ -45,7 +45,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
 INSTALLED_APPS = [
-    #'jazzmin',
+    'jazzmin',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -196,7 +196,7 @@ SIMPLE_JWT = {
 
 
 # interface django admin
-"""
+
 JAZZMIN_SETTINGS = {
     "site_title": "My Store API",
 
@@ -251,4 +251,3 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
-"""
