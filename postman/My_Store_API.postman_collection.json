@@ -1,145 +1,116 @@
 {
   "info": {
-    "_postman_id": "922c1879-cc4f-4231-b96e-31a0b2b8d3e6",
-    "name": "My Store API",
-    "description": "Coleção para testar a API My Store. Configure `email` e `password`; para criar ou trocar a imagem de uma loja, selecione um arquivo local de no máximo 1 MB no campo `image`.",
+    "_postman_id": "e8a7d3d6-4b7c-40d3-9fa5-1aaf4b2a0c10",
+    "name": "My Store API - localhost",
+    "description": "Collection para testes locais. Preencha email e password, execute Login e depois informe os IDs retornados nas variaveis store_id, category_id, customer_id, order_id e product_id.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://127.0.0.1:8000", "type": "string" },
-    { "key": "email", "value": "", "type": "string" },
-    { "key": "password", "value": "", "type": "string" },
-    { "key": "access_token", "value": "", "type": "string" },
-    { "key": "refresh_token", "value": "", "type": "string" },
-    { "key": "account_id", "value": "", "type": "string" },
-    { "key": "store_id", "value": "", "type": "string" },
-    { "key": "cnpj", "value": "12.345.678/0001-90", "type": "string" }
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "email", "value": "admin@local.test" },
+    { "key": "password", "value": "12345678" },
+    { "key": "store_id", "value": "ABC123" },
+    { "key": "category_id", "value": "1" },
+    { "key": "product_id", "value": "1" },
+    { "key": "customer_id", "value": "ID_DA_CONTA_CLIENTE" },
+    { "key": "order_id", "value": "1" },
+    { "key": "sale_id", "value": "1" }
   ],
   "item": [
     {
-      "name": "Autenticação",
+      "name": "Autenticacao",
       "item": [
         {
-          "name": "Login — obter tokens",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/authentication/token/",
-            "description": "Use as credenciais de um usuário já criado no Django Admin. Salva access_token e refresh_token automaticamente."
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body).to.have.property('access');", "pm.expect(body).to.have.property('refresh');", "pm.collectionVariables.set('access_token', body.access);", "pm.collectionVariables.set('refresh_token', body.refresh);"] } }]
+          "name": "Login - obter JWT",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const body = pm.response.json();", "pm.collectionVariables.set('access_token', body.access);", "pm.collectionVariables.set('refresh_token', body.refresh);"] } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" }, "url": "{{base_url}}/api/v1/authentication/token/" }
         },
         {
-          "name": "Renovar access token",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/authentication/token/refresh/"
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body).to.have.property('access');", "pm.collectionVariables.set('access_token', body.access);", "if (body.refresh) pm.collectionVariables.set('refresh_token', body.refresh);"] } }]
+          "name": "Renovar JWT",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}" }, "url": "{{base_url}}/api/v1/authentication/token/refresh/" }
         }
       ]
     },
     {
-      "name": "Contas",
-      "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
+      "name": "Usuarios e clientes",
       "item": [
         {
-          "name": "Listar contas",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/", "description": "A resposta atual não inclui o ID. Para consultar ou atualizar pelo detalhe, preencha manualmente a variável account_id." },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+          "name": "Cadastrar usuario comum (customer) - form-data",
+          "request": { "method": "POST", "body": { "mode": "formdata", "formdata": [
+            { "key": "email", "value": "cliente@local.test", "type": "text" },
+            { "key": "password", "value": "12345678", "type": "text" },
+            { "key": "first_name", "value": "Joao", "type": "text" },
+            { "key": "last_name", "value": "Silva", "type": "text" },
+            { "key": "telephone", "value": "11999999999", "type": "text" },
+            { "key": "address", "value": "Rua das Flores", "type": "text" },
+            { "key": "house_number", "value": "123", "type": "text" },
+            { "key": "coins", "value": "0", "type": "text" },
+            { "key": "image", "type": "file", "src": "" }
+          ] }, "url": "{{base_url}}/api/v1/customers/register/" }
         },
         {
-          "name": "Consultar conta por ID",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/accounts/{{account_id}}/", "description": "Informe account_id manualmente; o serializer de contas não devolve esse campo." },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+          "name": "Cadastrar conta de loja (somente admin) - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "email", "value": "lojista@local.test", "type": "text" }, { "key": "username", "value": "lojista", "type": "text" }, { "key": "password", "value": "12345678", "type": "text" }, { "key": "first_name", "value": "Maria", "type": "text" }, { "key": "last_name", "value": "Souza", "type": "text" }, { "key": "telephone", "value": "11988888888", "type": "text" }
+          ] }, "url": "{{base_url}}/api/v1/accounts/register/" }
+        },
+        { "name": "Minha conta", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/api/v1/accounts/" } }
+      ]
+    },
+    {
+      "name": "Preparacao da loja",
+      "item": [
+        {
+          "name": "Criar loja - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "name", "value": "Mercado Local", "type": "text" }, { "key": "slog", "value": "Perto de voce", "type": "text" }, { "key": "phone", "value": "11999999999", "type": "text" }, { "key": "address", "value": "Av. Principal, 100", "type": "text" }, { "key": "cnpj", "value": "12.345.678/0001-90", "type": "text" }, { "key": "instagram_url", "value": "https://instagram.com/mercadolocal", "type": "text" }, { "key": "image", "type": "file", "src": "" }
+          ] }, "url": "{{base_url}}/api/v1/stores/" }
         },
         {
-          "name": "Cadastrar conta — somente administrador",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"nova-conta@example.com\",\n  \"username\": \"nova_conta\",\n  \"password\": \"uma-senha-segura\",\n  \"first_name\": \"Nova\",\n  \"last_name\": \"Conta\",\n  \"telephone\": \"11999999999\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/accounts/register/",
-            "description": "Requer token de superusuário. A senha é usada apenas no cadastro e não é devolvida pela API."
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));"] } }]
-        },
-        {
-          "name": "Atualizar conta parcialmente",
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"telephone\": \"11988887777\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/accounts/{{account_id}}/"
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+          "name": "Criar categoria - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "store", "value": "{{store_id}}", "type": "text" }, { "key": "name", "value": "Bebidas", "type": "text" }, { "key": "description", "value": "Bebidas geladas e nao alcoolicas", "type": "text" }
+          ] }, "url": "{{base_url}}/api/v1/categories/" }
         }
       ]
     },
     {
-      "name": "Lojas",
+      "name": "Produtos",
       "item": [
         {
-          "name": "Listar lojas — público",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/" },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "if (rows && rows.length) pm.collectionVariables.set('store_id', rows[0].id);"] } }]
+          "name": "Cadastrar produto - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "store", "value": "{{store_id}}", "type": "text" }, { "key": "name", "value": "Refrigerante Cola 2L", "type": "text" }, { "key": "category", "value": "{{category_id}}", "type": "text" }, { "key": "description", "value": "Refrigerante gelado de 2 litros", "type": "text" }, { "key": "price", "value": "9.90", "type": "text" }, { "key": "stock", "value": "30", "type": "text" }, { "key": "crop_x", "value": "0", "type": "text" }, { "key": "crop_y", "value": "0", "type": "text" }, { "key": "crop_width", "value": "1024", "type": "text" }, { "key": "crop_height", "value": "1024", "type": "text" }, { "key": "image", "type": "file", "src": "" }
+          ] }, "url": "{{base_url}}/api/v1/products/" }
         },
+        { "name": "Listar produtos da loja", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "url": "{{base_url}}/api/v1/products/?store={{store_id}}" } }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
         {
-          "name": "Filtrar lojas por CNPJ — público",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/?cnpj={{cnpj}}" },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+          "name": "Criar pedido - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "X-Store-ID", "value": "{{store_id}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "customer", "value": "{{customer_id}}", "type": "text" }, { "key": "name_customer", "value": "Joao Silva", "type": "text" }, { "key": "phone", "value": "11999999999", "type": "text" }, { "key": "address", "value": "Rua das Flores", "type": "text" }, { "key": "house_number", "value": "123", "type": "text" }, { "key": "observation", "value": "Entregar na portaria", "type": "text" }, { "key": "latitude", "value": "-23.550520", "type": "text" }, { "key": "longitude", "value": "-46.633308", "type": "text" }, { "key": "subtotal", "value": "19.80", "type": "text" }, { "key": "rate_delivery", "value": "5.00", "type": "text" }, { "key": "total", "value": "24.80", "type": "text" }, { "key": "remaining", "value": "0.00", "type": "text" }, { "key": "payment_method", "value": "pix", "type": "text" }, { "key": "itens", "value": "[{\"id\": {{product_id}}, \"name\": \"Refrigerante Cola 2L\", \"price\": 9.90, \"quantity\": 2}]", "type": "text" }
+          ] }, "url": "{{base_url}}/api/v1/orders/" }
         },
+        { "name": "Listar pedidos", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "X-Store-ID", "value": "{{store_id}}" }], "url": "{{base_url}}/api/v1/orders/" } },
+        { "name": "Confirmar entrega - form-data", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }], "body": { "mode": "formdata", "formdata": [{ "key": "code", "value": "a1b2", "type": "text" }] }, "url": "{{base_url}}/api/v1/orders/{{order_id}}/confirm-delivery" } }
+      ]
+    },
+    {
+      "name": "Vendas",
+      "item": [
         {
-          "name": "Consultar loja por ID — público",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/{{store_id}}/" },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));"] } }]
+          "name": "Criar venda - form-data",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "X-Store-ID", "value": "{{store_id}}" }], "body": { "mode": "formdata", "formdata": [
+            { "key": "order", "value": "{{order_id}}", "type": "text" }, { "key": "subtotal", "value": "19.80", "type": "text" }, { "key": "rate_delivery", "value": "5.00", "type": "text" }, { "key": "total", "value": "24.80", "type": "text" }, { "key": "remaining", "value": "0.00", "type": "text" }, { "key": "payment_method", "value": "pix", "type": "text" }, { "key": "collaborator", "value": "Maria", "type": "text" }, { "key": "observation", "value": "Venda gerada pelo Postman", "type": "text" }, { "key": "status", "value": "true", "type": "text" }
+          ] }, "url": "{{base_url}}/api/v1/sales/" }
         },
-        {
-          "name": "Criar loja",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
-          "request": {
-            "method": "POST",
-            "body": { "mode": "formdata", "formdata": [
-              { "key": "name", "value": "Loja de Teste", "type": "text" },
-              { "key": "phone", "value": "11999999999", "type": "text" },
-              { "key": "address", "value": "Rua de Teste, 123", "type": "text" },
-              { "key": "cnpj", "value": "{{cnpj}}", "type": "text" },
-              { "key": "instagram_url", "value": "https://instagram.com/minha_loja", "type": "text" },
-              { "key": "facebook_url", "value": "https://facebook.com/minha_loja", "type": "text" },
-              { "key": "other_url", "value": "https://example.com", "type": "text" },
-              { "key": "image", "type": "file", "src": "" }
-            ] },
-            "url": "{{base_url}}/api/v1/stores/",
-            "description": "Antes de enviar, escolha um arquivo de imagem válido (máximo 1 MB) no campo image."
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));", "pm.expect(pm.response.json()).to.have.property('id');"] } }]
-        },
-        {
-          "name": "Localizar loja recém-criada",
-          "request": { "method": "GET", "url": "{{base_url}}/api/v1/stores/?cnpj={{cnpj}}", "description": "Execute após criar a loja. Salva o primeiro ID retornado para os testes de atualização e exclusão." },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "const rows = Array.isArray(body) ? body : body.results;", "pm.expect(rows).to.not.be.empty;", "pm.collectionVariables.set('store_id', rows[0].id);"] } }]
-        },
-        {
-          "name": "Atualizar loja parcialmente",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
-          "request": {
-            "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Loja de Teste Atualizada\",\n  \"phone\": \"11988887777\"\n}", "options": { "raw": { "language": "json" } } },
-            "url": "{{base_url}}/api/v1/stores/{{store_id}}/"
-          },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json()).to.have.property('id');"] } }]
-        },
-        {
-          "name": "Excluir loja — destrutivo",
-          "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{access_token}}", "type": "string" }] },
-          "request": { "method": "DELETE", "url": "{{base_url}}/api/v1/stores/{{store_id}}/", "description": "Atenção: remove a loja e tenta remover sua imagem do Supabase." },
-          "event": [{ "listen": "test", "script": { "exec": ["pm.test('Status 204', () => pm.response.to.have.status(204));"] } }]
-        }
+        { "name": "Listar vendas", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "X-Store-ID", "value": "{{store_id}}" }], "url": "{{base_url}}/api/v1/sales/" } }
       ]
     }
   ]

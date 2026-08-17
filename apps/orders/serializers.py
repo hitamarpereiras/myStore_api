@@ -29,6 +29,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             'status',
+            'store',
+            'customer',
             'created_at', 
             'updated_at'
         ]

@@ -4,7 +4,7 @@ from apps.orders.views import OrderViewSet, ConfirmDelivery
 
 
 router = DefaultRouter()
-router.register(r'orders', OrderViewSet)
+router.register(r'orders', OrderViewSet, basename='orders')
 
 urlpatterns = [
     path('orders/<str:pk>/confirm-delivery', ConfirmDelivery.as_view(), name='confirm-delivery'),

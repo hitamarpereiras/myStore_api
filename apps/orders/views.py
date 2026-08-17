@@ -87,36 +87,37 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         try:
             return Store.objects.get(
-                id=store_id,
-                owner=self.request.user
+                id=store_id
             )
         except Store.DoesNotExist:
             raise PermissionDenied(
-                "Você não tem acesso a esta loja."
+                "Loja não encontrada."
             )
 
     def get_queryset(self):
-
+        user = self.request.user
         store = self.get_store()
 
-        qs = Order.objects.filter(
+        # Cliente:
+        # retorna somente os pedidos dele
+        # dentro da loja selecionada
+        if hasattr(user, "customer"):
+            return Order.objects.filter(
+                store=store,
+                customer=user
+            )
+
+        # Usuário da loja:
+        # retorna todos os pedidos daquela loja
+        return Order.objects.filter(
             store=store
         )
 
-        if self.request.user.is_customer:
-            return qs.filter(
-                customer__user=self.request.user
-            )
-
-        if self.request.user.is_store:
-            return qs
-
-        return Order.objects.none()
-
     def perform_create(self, serializer):
-
+        user = self.request.user
         store = self.get_store()
 
         serializer.save(
-            store=store
+            store=store,
+            customer=user
         )

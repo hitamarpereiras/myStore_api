@@ -18,6 +18,8 @@ class Order(models.Model):
     )
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
         on_delete=models.PROTECT,
         related_name='orders',
         verbose_name='Cliente',
