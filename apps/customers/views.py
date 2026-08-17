@@ -3,6 +3,7 @@ from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import action
 from rest_framework import status
 
 
@@ -47,6 +48,43 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Customer.objects.filter(user=user)
         
         return Customer.objects.none()
+
+
+    @action(
+            detail=True,
+            methods=["post"],
+            url_path="add-coins"
+    )
+    def add_coins(self, request, pk=None):
+
+        customer = self.get_object()
+
+        coins = request.data.get("coins")
+
+        if coins is None:
+            return Response(
+                {"detail": "Informe a quantidade de coins."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        coins = int(coins)
+
+        if coins <= 0:
+            return Response(
+                {"detail": "A quantidade deve ser maior que zero."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        customer.coins += coins
+        customer.save(update_fields=["coins"])
+
+        return Response(
+            {
+                "detail": "Coins adicionadas com sucesso.",
+                "coins": customer.coins
+            },
+            status=status.HTTP_200_OK
+        )
 
 
     def update(self, request, *args, **kwargs):
