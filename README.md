@@ -73,7 +73,25 @@ SUPABASE_URL=https://SEU-PROJETO.supabase.co
 SUPABASE_KEY=SUA_CHAVE_DO_SUPABASE
 ```
 
-`DATABASE_URL`, `SUPABASE_URL` e `SUPABASE_KEY` são obrigatórias para a inicialização atual. A aplicação exige conexão SSL com o PostgreSQL. O `DEBUG` está definido diretamente nas configurações do Django.
+`DATABASE_URL`, `SUPABASE_URL` e `SUPABASE_KEY` são obrigatórias para a inicialização atual. A aplicação exige conexão SSL com o PostgreSQL. Use `DEBUG=True` apenas localmente.
+
+## Deploy no Vercel
+
+O repositório está preparado para o runtime Python/Django do Vercel. Importe-o pelo painel do Vercel ou execute `vercel` na raiz do projeto. Antes do primeiro deploy, cadastre em **Settings > Environment Variables** (Production e Preview, se desejar):
+
+```text
+DJANGO_SECRET_KEY=<uma-chave-aleatória-longa>
+DEBUG=False
+DATABASE_URL=<url-do-postgresql-com-ssl>
+SUPABASE_URL=<url-do-projeto-supabase>
+SUPABASE_KEY=<chave-do-supabase>
+```
+
+Para domínio próprio ou outro frontend, adicione também `DJANGO_ALLOWED_HOSTS` e `CORS_ALLOWED_ORIGINS`, com valores separados por vírgula. A URL `*.vercel.app` já é aceita como host. Após o deploy, execute as migrações uma vez a partir de uma máquina com acesso ao banco:
+
+```bash
+python manage.py migrate
+```
 
 ### 5. Aplique as migrações e crie um administrador
 

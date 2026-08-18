@@ -1,6 +1,8 @@
+import os
 from pathlib import Path
 from config import thi_settings
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from datetime import timedelta
 from corsheaders.defaults import default_headers
 
@@ -8,16 +10,27 @@ from corsheaders.defaults import default_headers
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!myuvwl4g*rp8ugg9^u$k=ow$!a(ro-78exi+-oihv8xy^cyqm'
+_django_secret_key = os.environ.get("DJANGO_SECRET_KEY")
+if os.environ.get("VERCEL") and not _django_secret_key:
+    raise ImproperlyConfigured("DJANGO_SECRET_KEY must be configured in Vercel.")
+
+SECRET_KEY = _django_secret_key or "django-insecure-local-development-key-change-before-production"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = thi_settings.DEBUG
 
 ALLOWED_HOSTS = [
     "mystore-api-n1f9.onrender.com",
     "adm-loja.vercel.app",
     "localhost",
     "127.0.0.1",
+    ".vercel.app",
+]
+
+ALLOWED_HOSTS += [
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -34,12 +47,25 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5500",
 ]
 
+CORS_ALLOWED_ORIGINS += [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 CORS_ALLOW_HEADERS = [
     *default_headers,
     "x-store-id",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 31536000
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
