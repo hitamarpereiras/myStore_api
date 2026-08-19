@@ -1,353 +1,378 @@
-<div align="center">
+# 🛍️ My Store API
 
-# My Store API
+> API REST para operar uma plataforma de lojas: contas, clientes, catálogo, pedidos e vendas.
 
-<p>API REST para gerenciamento de lojas, produtos, categorias, pedidos e contas da plataforma <strong>My Store</strong>.</p>
+![Django](https://img.shields.io/badge/Django-6.0-0C4B33?style=for-the-badge&logo=django&logoColor=white)
+![DRF](https://img.shields.io/badge/Django_REST_Framework-3.17-A30000?style=for-the-badge)
+![JWT](https://img.shields.io/badge/Autenticação-JWT-6B4EFF?style=for-the-badge)
+![PostgreSQL](https://img.shields.io/badge/Banco-PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 
-![Python](https://img.shields.io/badge/Python-3.12%2B-1f3a5f?style=flat-square&logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-6.0-1f3a5f?style=flat-square&logo=django&logoColor=white)
-![DRF](https://img.shields.io/badge/Django_REST_Framework-3.17-4b5563?style=flat-square)
-![JWT](https://img.shields.io/badge/Auth-JWT-334155?style=flat-square)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-475569?style=flat-square&logo=postgresql&logoColor=white)
+---
 
-</div>
+## ✨ Visão geral
 
-## Visão geral
+A **My Store API** é um backend Django REST Framework com autenticação JWT. Ela separa a operação por lojas e permite que clientes consultem o catálogo e façam pedidos, enquanto os responsáveis pela loja administram catálogo e vendas.
 
-O projeto oferece autenticação JWT, administração pelo Django Admin e recursos para contas, lojas, categorias, produtos e pedidos. Lojas e produtos aceitam imagens, que são processadas e armazenadas no Supabase Storage.
+| Ambiente               | Endereço                       |
+| ---------------------- | ------------------------------- |
+| Local                  | `http://localhost:8000`       |
+| Produção             | `https://exemploapistore.com` |
+| Base da API            | `{BASE_URL}/api/v1/`          |
+| Administração Django | `{BASE_URL}/adm/`             |
 
-| Camada | Tecnologia |
-| --- | --- |
-| Linguagem | Python 3.12+ |
-| Framework | Django 6 |
-| API | Django REST Framework |
-| Autenticação | Simple JWT |
-| Banco de dados | PostgreSQL |
-| Arquivos | Supabase Storage |
-| Configuração | Pydantic Settings + `.env` |
+> 💡 Todos os caminhos documentados abaixo já começam em `/api/v1`.
 
-## Início rápido
+## 🎨 Apps do projeto
 
-### Pré-requisitos
+| App                        | Papel no sistema                                                 |
+| -------------------------- | ---------------------------------------------------------------- |
+| 🔐**authentication** | Emite e renova tokens JWT.                                       |
+| 👤**accounts**       | Gerencia contas de usuários da plataforma e lojistas.           |
+| 🧑‍💼**customers**  | Cadastro público e perfil de clientes, avatar e moedas.         |
+| 🏪**stores**         | Cadastro, identidade visual e dados das lojas.                   |
+| 🗂️**categories**   | Organização do catálogo por categoria.                        |
+| 📦**products**       | Produtos, estoque, categorias, imagem e recorte.                 |
+| 🧾**orders**         | Pedidos, endereço de entrega, pagamento, itens e confirmação. |
+| 💰**sales**          | Registro das vendas associadas a pedidos e à loja ativa.        |
 
-- Python 3.12 ou superior
-- PostgreSQL acessível pela aplicação
-- Projeto e bucket `avatar_lojas` configurados no Supabase
-- `pip`
+---
 
-### 1. Clone o repositório e entre na pasta
+## 🚀 Como executar localmente
 
-```bash
-git clone <URL_DO_REPOSITORIO>
-cd mystore_api
-```
+### 1. Pré-requisitos
 
-### 2. Crie e ative o ambiente virtual
+- Python 3.12+ recomendado;
+- PostgreSQL acessível pela aplicação;
+- credenciais de um projeto Supabase (usado para armazenar imagens).
+
+### 2. Criar e ativar o ambiente virtual
 
 ```powershell
-# Windows (PowerShell)
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-```bash
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 3. Instale as dependências
-
-```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-### 4. Configure o ambiente
+### 3. Configurar variáveis de ambiente
 
-Crie o arquivo `.env` na raiz. Não versione chaves, credenciais nem URLs reais.
+Crie um arquivo `.env` na raiz do projeto. Não inclua esse arquivo no Git.
 
 ```env
-APP_NAME=my store
 DATABASE_URL=postgresql://USUARIO:SENHA@HOST:5432/NOME_DO_BANCO
-SUPABASE_URL=https://SEU-PROJETO.supabase.co
-SUPABASE_KEY=SUA_CHAVE_DO_SUPABASE
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_KEY=sua_chave_do_supabase
 ```
 
-`DATABASE_URL`, `SUPABASE_URL` e `SUPABASE_KEY` são obrigatórias para a inicialização atual. A aplicação exige conexão SSL com o PostgreSQL. Use `DEBUG=True` apenas localmente.
+### 4. Preparar o banco e iniciar o servidor
 
-## Deploy no Vercel
-
-O repositório está preparado para o runtime Python/Django do Vercel. Importe-o pelo painel do Vercel ou execute `vercel` na raiz do projeto. Antes do primeiro deploy, cadastre em **Settings > Environment Variables** (Production e Preview, se desejar):
-
-```text
-DJANGO_SECRET_KEY=<uma-chave-aleatória-longa>
-DEBUG=False
-DATABASE_URL=<url-do-postgresql-com-ssl>
-SUPABASE_URL=<url-do-projeto-supabase>
-SUPABASE_KEY=<chave-do-supabase>
-```
-
-Para domínio próprio ou outro frontend, adicione também `DJANGO_ALLOWED_HOSTS` e `CORS_ALLOWED_ORIGINS`, com valores separados por vírgula. A URL `*.vercel.app` já é aceita como host. Após o deploy, execute as migrações uma vez a partir de uma máquina com acesso ao banco:
-
-```bash
-python manage.py migrate
-```
-
-### 5. Aplique as migrações e crie um administrador
-
-```bash
+```powershell
 python manage.py migrate
 python manage.py createsuperuser
-```
-
-O usuário personalizado utiliza o **e-mail** para autenticação; informe também um `username` ao criar o superusuário.
-
-### 6. Inicie o servidor
-
-```bash
 python manage.py runserver
 ```
 
-A API estará disponível na URL configurada para o ambiente. Nos exemplos abaixo, substitua `{{BASE_URL}}` pela URL da sua API, por exemplo `https://api.exemplo.com`.
+O servidor estará disponível em `http://localhost:8000`.
 
-## Autenticação JWT
+---
+
+## 🔐 Autenticação e headers
+
+As rotas protegidas usam JWT. Primeiro faça login; em seguida, envie o token de acesso em todas as solicitações autenticadas:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Produtos, pedidos e vendas também exigem que a loja atual seja indicada pelo header abaixo:
+
+```http
+X-Store-ID: ABC123
+```
+
+O identificador de loja possui seis caracteres. Sem o `X-Store-ID`, a API retorna `403 Forbidden` nessas áreas.
+
+### Fluxo sugerido
+
+```text
+Criar/obter conta → Login JWT → Criar loja → Criar categoria → Criar produto
+                                                ↓
+Cliente se cadastra → consulta produtos → cria pedido → confirma entrega → registra venda
+```
+
+### Convenções da API
+
+- A maioria dos endpoints do `DefaultRouter` usa barra final: `/products/`.
+- Requisições com imagem devem ser `multipart/form-data`.
+- Requisições sem arquivo podem ser enviadas em JSON quando o endpoint o aceitar; nos exemplos, usamos JSON para leitura simples e `form-data` para uploads.
+- Campos somente leitura são preenchidos pelo servidor. Não é necessário enviá-los.
+- Listagens são paginadas por padrão: 40 itens por página, até 80 com `?page_size=80`.
+- As respostas de listagem paginada incluem `count`, `next`, `previous` e `results`.
+
+---
+
+## 🔐 Authentication — tokens JWT
 
 ### Obter tokens
 
-Envie o e-mail e a senha de um usuário existente:
-
-```bash
-curl -X POST {{BASE_URL}}/api/v1/authentication/token/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "seu_email@example.com",
-    "password": "sua_senha"
-  }'
-```
+`POST /api/v1/authentication/token/` · Público
 
 ```json
 {
-  "refresh": "<refresh_token>",
-  "access": "<access_token>"
+  "email": "admin@local.test",
+  "password": "12345678"
 }
 ```
 
-Use o token de acesso nas rotas protegidas:
+Resposta `200 OK`:
 
-```bash
-curl {{BASE_URL}}/api/v1/categories/ \
-  -H "Authorization: Bearer <access_token>"
+```json
+{
+  "refresh": "eyJ...",
+  "access": "eyJ..."
+}
 ```
 
-O access token expira em 15 dias. O refresh token expira em 20 dias; ao renová-lo, um novo refresh token é emitido e o anterior é invalidado.
+O token de acesso vale por **15 dias**. O refresh token vale por **20 dias**.
 
-```bash
-curl -X POST {{BASE_URL}}/api/v1/authentication/token/refresh/ \
-  -H "Content-Type: application/json" \
-  -d '{"refresh": "<refresh_token>"}'
+### Renovar access token
+
+`POST /api/v1/authentication/token/refresh/` · Público
+
+```json
+{
+  "refresh": "eyJ..."
+}
 ```
 
-## Rotas da API
+Como a rotação de refresh tokens está habilitada, guarde o novo refresh retornado pela API e descarte o anterior.
 
-Base URL: `{{BASE_URL}}`
+---
 
-| Recurso | Rota | Acesso | Métodos |
-| --- | --- | --- | --- |
-| Tokens JWT | `/api/v1/authentication/token/` | Público | `POST` |
-| Renovação JWT | `/api/v1/authentication/token/refresh/` | Público | `POST` |
-| Contas | `/api/v1/accounts/` e `/api/v1/accounts/{id}/` | JWT | `GET`, `PATCH` |
-| Cadastro de contas | `/api/v1/accounts/register/` | Administrador JWT | `POST` |
-| Lojas | `/api/v1/stores/` e `/api/v1/stores/{id}/` | Leitura pública; escrita JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Categorias | `/api/v1/categories/` e `/api/v1/categories/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Produtos | `/api/v1/products/` e `/api/v1/products/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Vendas | `/api/v1/sales/` e `/api/v1/sales/{id}/` | JWT + `X-Store-ID` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Pedidos | `/api/v1/orders/` e `/api/v1/orders/{id}/` | JWT | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` |
-| Confirmar entrega | `/api/v1/orders/{id}/confirm-delivery` | JWT do entregador responsável | `POST` |
-| Administração | `/adm/` | Sessão de administrador | Interface Django Admin |
+## 👤 Accounts — contas de usuários
 
-As listagens são paginadas. Para contas, lojas e categorias, o padrão é 40 itens por página, com `?page=` e `?page_size=` (máximo de 80). Produtos utilizam 14 itens por página e aceitam `page_size` de até 28.
+### Criar conta de lojista/usuário
 
-### Contas
+`POST /api/v1/accounts/register/` · 🔒 Somente administrador
 
-`GET /api/v1/accounts/` e `GET /api/v1/accounts/{id}/` exigem JWT. Usuários comuns consultam apenas a própria conta; superusuários podem consultar todas. As únicas operações permitidas nesse recurso são `GET` e `PATCH` — não há `POST`, `PUT` nem `DELETE`.
-
-O retorno contém `email`, `username`, `first_name`, `last_name` e `telephone`; a senha nunca é exposta. É possível atualizar parcialmente esses campos com `PATCH`, mas não alterar a senha por essa rota.
-
-O cadastro é feito em `POST /api/v1/accounts/register/` e exige um token de superusuário. Envie `email`, `username` e `password`; `first_name`, `last_name` e `telephone` são opcionais.
-
-```bash
-curl -X POST {{BASE_URL}}/api/v1/accounts/register/ \
-  -H "Authorization: Bearer <admin_access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "nova-conta@example.com",
-    "username": "nova_conta",
-    "password": "uma-senha-segura"
-  }'
+```json
+{
+  "email": "lojista@exemplo.com",
+  "username": "mercado_central",
+  "password": "UmaSenhaSegura123",
+  "first_name": "Maria",
+  "last_name": "Souza",
+  "telephone": "11988888888"
+}
 ```
 
-### Lojas
+Resposta `201 Created`:
 
-`GET /api/v1/stores/` e `GET /api/v1/stores/{id}/` são públicos. Criação, alteração e exclusão exigem JWT e só alcançam lojas pertencentes ao usuário autenticado.
+```json
+{
+  "id": "AB12CD34EF",
+  "email": "lojista@exemplo.com",
+  "username": "mercado_central",
+  "first_name": "Maria",
+  "last_name": "Souza",
+  "telephone": "11988888888"
+}
+```
 
-Os filtros aceitos na listagem são `id`, `owner` e `cnpj`:
+### Consultar ou atualizar contas
+
+| Método   | Rota                       | Resultado                                                                   |
+| --------- | -------------------------- | --------------------------------------------------------------------------- |
+| `GET`   | `/api/v1/accounts/`      | Administrador vê todas as contas; demais usuários veem apenas a própria. |
+| `GET`   | `/api/v1/accounts/{id}/` | Retorna uma conta acessível ao usuário.                                   |
+| `PATCH` | `/api/v1/accounts/{id}/` | Atualiza parcialmente os campos expostos da conta.                          |
+
+> ℹ️ Este recurso não expõe `POST`, `PUT` ou `DELETE`. O cadastro é feito pela rota `accounts/register/`.
+
+---
+
+## 🧑‍💼 Customers — clientes
+
+### Cadastro público de cliente
+
+`POST /api/v1/customers/register/` · Público · `multipart/form-data`
+
+| Campo            | Obrigatório | Descrição              |
+| ---------------- | ------------ | ------------------------ |
+| `email`        | Sim          | E-mail único de acesso. |
+| `password`     | Sim          | Senha da nova conta.     |
+| `first_name`   | Sim          | Primeiro nome.           |
+| `last_name`    | Sim          | Sobrenome.               |
+| `telephone`    | Não         | Telefone do cliente.     |
+| `address`      | Não         | Endereço padrão.       |
+| `house_number` | Não         | Número/complemento.     |
+| `coins`        | Não         | Saldo inicial de moedas. |
+| `image`        | Não         | Avatar do cliente.       |
+
+Exemplo em `form-data`:
 
 ```text
-GET /api/v1/stores/?cnpj=12.345.678/0001-90
+email=joao@exemplo.com
+password=UmaSenhaSegura123
+first_name=João
+last_name=Silva
+telephone=11999999999
+address=Rua das Flores
+house_number=123
+coins=0
+image=@avatar.png
 ```
 
-Para criar uma loja, envie `multipart/form-data` com o campo `image`. O arquivo deve ser uma imagem válida de até 1 MB; ele é convertido para JPEG, redimensionado e armazenado no bucket `avatar_lojas`.
+Resposta `201 Created`:
 
-| Campo | Tipo | Observação |
-| --- | --- | --- |
-| `name` | texto | Obrigatório |
-| `phone`, `address`, `cnpj` | texto | Opcionais |
-| `instagram_url`, `facebook_url`, `other_url` | URL | Opcionais |
-| `image` | arquivo | Enviar como multipart; até 1 MB |
-| `owner` | — | Definido automaticamente pelo token |
-| `avatar_url`, `color_palette`, `created_at`, `updated_at` | — | Gerados pela API e somente leitura |
-
-Exemplo:
-
-```bash
-curl -X POST {{BASE_URL}}/api/v1/stores/ \
-  -H "Authorization: Bearer <access_token>" \
-  -F "name=Minha Loja" \
-  -F "cnpj=12.345.678/0001-90" \
-  -F "image=@./avatar.png"
+```json
+{ "message": "Usuário criado com sucesso" }
 ```
 
-As operações de criação e atualização retornam a representação da loja. A exclusão retorna `204 No Content`. Na troca ou exclusão, a API tenta remover o avatar anterior do Supabase.
+### Perfil e moedas
 
-### Categorias
+| Método    | Rota                                  | Descrição                                                                                             |
+| ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `GET`    | `/api/v1/customers/`                | Lista apenas o perfil de cliente ligado ao usuário autenticado.                                        |
+| `GET`    | `/api/v1/customers/{id}/`           | Obtém um perfil do escopo autenticado.                                                                 |
+| `PATCH`  | `/api/v1/customers/{id}/`           | Atualiza endereço, número, moedas, premium ou imagem. Use`multipart/form-data` ao enviar `image`. |
+| `DELETE` | `/api/v1/customers/{id}/`           | Exclui o perfil e seu avatar armazenado.                                                                |
+| `POST`   | `/api/v1/customers/{id}/add-coins/` | Acrescenta moedas ao cliente.                                                                           |
 
-Categorias sempre exigem JWT. O proprietário é preenchido automaticamente na criação e não pode ser informado pelo cliente. Usuários comuns acessam apenas as próprias categorias; superusuários acessam todas.
+Para adicionar moedas:
 
-Filtros disponíveis: `name`, `owner` e `store`.
+```json
+{ "coins": 25 }
+```
+
+O valor deve ser inteiro e maior que zero. A resposta confirma o novo saldo:
+
+```json
+{
+  "detail": "Coins adicionadas com sucesso.",
+  "coins": 25
+}
+```
+
+---
+
+## 🏪 Stores — lojas
+
+Uma loja é vinculada automaticamente ao usuário autenticado que a cria. Cada loja recebe um ID de seis caracteres, usado como `X-Store-ID` nas áreas de catálogo, pedidos e vendas.
+
+### Criar loja
+
+`POST /api/v1/stores/` · 🔒 Autenticado · `multipart/form-data`
+
+```text
+name=Mercado Local
+slog=Perto de você
+phone=11999999999
+address=Av. Principal, 100
+cnpj=12.345.678/0001-90
+instagram_url=https://instagram.com/mercadolocal
+facebook_url=https://facebook.com/mercadolocal
+other_url=https://mercadolocal.com.br
+image=@logo.png
+```
+
+Ao enviar uma imagem, ela é processada, enviada ao Supabase e também gera uma `color_palette` automaticamente para uso no frontend.
+
+Campos retornados: `id`, `owner`, `name`, `slog`, `phone`, `address`, `cnpj`, `avatar_url`, redes sociais, `color_palette`, `created_at` e `updated_at`.
+
+### Operações disponíveis
+
+| Método    | Rota                     | Descrição                                             |
+| ---------- | ------------------------ | ------------------------------------------------------- |
+| `GET`    | `/api/v1/stores/`      | Lista as lojas do usuário. Administradores veem todas. |
+| `POST`   | `/api/v1/stores/`      | Cria uma loja.                                          |
+| `GET`    | `/api/v1/stores/{id}/` | Consulta uma loja.                                      |
+| `PATCH`  | `/api/v1/stores/{id}/` | Atualiza dados e/ou logo.                               |
+| `DELETE` | `/api/v1/stores/{id}/` | Exclui a loja e remove o avatar associado.              |
+
+Filtros disponíveis: `?id=ABC123`, `?owner=ID_DO_USUARIO` e `?cnpj=...`.
+
+---
+
+## 🗂️ Categories — categorias
+
+As categorias pertencem ao usuário autenticado e podem ser associadas a uma loja. O nome é normalizado para letras minúsculas e deve ser único na base.
+
+### Criar categoria
+
+`POST /api/v1/categories/` · 🔒 Autenticado
 
 ```json
 {
   "store": "ABC123",
-  "name": "Eletrônicos",
-  "description": "Produtos eletrônicos"
+  "name": "Bebidas",
+  "description": "Bebidas geladas e não alcoólicas"
 }
 ```
 
-`store` é opcional e referencia o ID de uma loja. O nome da categoria é único em toda a base de dados.
+O campo `owner` é preenchido pelo backend; não o envie. A resposta terá `name: "bebidas"`.
 
-### Produtos
+### Operações e filtros
 
-Todos os endpoints de produtos exigem JWT. Usuários comuns visualizam e administram somente produtos dos quais são proprietários; superusuários podem visualizar todos os produtos.
+| Método                                 | Rota                         |
+| --------------------------------------- | ---------------------------- |
+| `GET`, `POST`                       | `/api/v1/categories/`      |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/categories/{id}/` |
 
-A listagem aceita os filtros `category`, `price`, `name` e `store`. Para carregar os produtos de uma loja específica, o front-end deve enviar o ID da loja no parâmetro `store`:
+Filtros: `?name=bebidas`, `?owner=ID_DO_USUARIO` e `?store=ABC123`.
 
-```text
-GET /api/v1/products/?store=abc123
-```
+---
 
-O filtro `store` também pode ser combinado com paginação e os demais filtros, por exemplo: `GET /api/v1/products/?store=abc123&category=2&page=1&page_size=14`. Usuários comuns recebem somente produtos das próprias lojas; superusuários podem consultar produtos de qualquer loja.
+## 📦 Products — produtos
 
-Na criação, envie `multipart/form-data` e inclua a imagem do produto. O arquivo deve ser uma imagem válida de até 1 MB; a API o converte para JPEG de 1024 × 1024 px e o armazena no bucket `products` do Supabase.
+Todas as rotas deste app precisam de `Authorization` e `X-Store-ID`. Qualquer usuário autenticado pode listar o catálogo da loja selecionada, mas somente o proprietário da loja (ou um administrador) pode criar, editar ou excluir produtos.
 
-| Campo | Tipo | Observação |
-| --- | --- | --- |
-| `store` | ID da loja | Obrigatório |
-| `name` | texto | Obrigatório; máximo de 100 caracteres |
-| `category` | lista de IDs | Obrigatório; uma ou mais categorias |
-| `description` | texto | Opcional; máximo de 320 caracteres |
-| `price` | decimal | Opcional; padrão `0.00` |
-| `stock` | inteiro | Opcional; padrão `0` |
-| `image` | arquivo | Enviar como multipart; até 1 MB |
-| `crop_x`, `crop_y`, `crop_width`, `crop_height` | inteiro | Opcionais; metadados de recorte para o front-end |
-| `owner` | — | Definido automaticamente pelo token |
-| `image_url`, `image_path` | — | Gerados pela API e somente leitura |
+### Criar produto
 
-Exemplo:
-
-```bash
-curl -X POST {{BASE_URL}}/api/v1/products/ \
-  -H "Authorization: Bearer <access_token>" \
-  -F "store=ABC123" \
-  -F "name=Fone Bluetooth" \
-  -F "category=2" \
-  -F "price=199.90" \
-  -F "stock=10" \
-  -F "image=@./fone.png"
-```
-
-Ao criar, atualizar ou excluir um produto, a API retorna uma mensagem de confirmação. Na troca ou exclusão, ela tenta remover a imagem anterior do Supabase.
-
-### Vendas
-
-Todos os endpoints de vendas exigem JWT e o header `X-Store-ID`. O front-end deve enviar nele o ID da loja que está sendo utilizada no momento. Esse header é obrigatório também para consultar, atualizar ou excluir uma venda individual.
+`POST /api/v1/products/` · 🔒 Proprietário/administrador · `multipart/form-data`
 
 ```text
 X-Store-ID: ABC123
+
+name=Refrigerante Cola 2L
+category=1
+category=3
+description=Refrigerante gelado de dois litros
+price=9.90
+stock=30
+crop_x=0
+crop_y=0
+crop_width=1024
+crop_height=1024
+image=@refrigerante.jpg
 ```
 
-A API valida que a loja indicada pertence ao usuário autenticado. Portanto, não envie `store` nem `account` no corpo da requisição: ambos são definidos pelo backend a partir do header e do token JWT. As listagens retornam somente vendas da loja selecionada e do usuário autenticado.
+`category` é um relacionamento de múltiplas categorias: envie o campo repetido para associar mais de uma. A imagem é opcional; quando enviada, é processada em até 1024×1024 e armazenada no Supabase.
 
-| Campo | Tipo | Observação |
-| --- | --- | --- |
-| `order` | ID do pedido | Obrigatório; um pedido pode estar vinculado a somente uma venda |
-| `total`, `subtotal`, `remaining`, `rate_delivery` | decimal | Opcionais; padrão `0.00` |
-| `payment_method` | texto | Opcional; máximo de 15 caracteres |
-| `collaborator` | texto | Opcional; máximo de 50 caracteres |
-| `observation` | texto | Opcional; máximo de 200 caracteres |
-| `status` | booleano | Opcional; padrão `false` |
-| `account`, `store`, `created_at`, `updated_at` | — | Definidos pela API; não enviar no payload |
+### Operações e filtros
 
-Exemplo de criação:
+| Método             | Rota                       | Descrição                              |
+| ------------------- | -------------------------- | ---------------------------------------- |
+| `GET`             | `/api/v1/products/`      | Lista produtos da loja em`X-Store-ID`. |
+| `POST`            | `/api/v1/products/`      | Cria produto da loja atual.              |
+| `GET`             | `/api/v1/products/{id}/` | Consulta produto da loja atual.          |
+| `PUT` / `PATCH` | `/api/v1/products/{id}/` | Atualiza produto; pode trocar a imagem.  |
+| `DELETE`          | `/api/v1/products/{id}/` | Exclui produto e sua imagem.             |
 
-```bash
-curl -X POST {{BASE_URL}}/api/v1/sales/ \
-  -H "Authorization: Bearer <access_token>" \
-  -H "X-Store-ID: ABC123" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "order": 42,
-    "subtotal": "90.00",
-    "rate_delivery": "10.00",
-    "total": "100.00",
-    "payment_method": "pix",
-    "collaborator": "Maria"
-  }'
-```
+Filtros: `?category=1`, `?price=9.90` e `?name=cola`. Paginação: `?page=2&page_size=40`.
 
-Para listar ou acessar uma venda, mantenha os dois headers:
+---
 
-```bash
-curl {{BASE_URL}}/api/v1/sales/ \
-  -H "Authorization: Bearer <access_token>" \
-  -H "X-Store-ID: ABC123"
-```
+## 🧾 Orders — pedidos
 
-Se `X-Store-ID` não for enviado, a API retorna `403 Forbidden` informando que o header é obrigatório. O mesmo status é retornado quando a loja não pertence ao usuário autenticado. Uma venda que não pertença à loja selecionada não é exposta pela API.
+Todas as rotas de pedidos exigem autenticação e `X-Store-ID`.
 
-### Pedidos
+- Um usuário que possui perfil de cliente vê **somente seus pedidos** na loja selecionada.
+- Um usuário sem esse perfil vê os pedidos da loja selecionada.
+- Na criação, `store` vem do header e `customer` vem do usuário autenticado: **não envie esses dois campos**.
 
-Todos os endpoints de pedidos exigem JWT. A listagem retorna os pedidos da loja associada ao usuário autenticado; clientes visualizam apenas os próprios pedidos. Os filtros disponíveis são `created_at`, `code` e `total`:
+### ⚠️ Campo obrigatório `itens`
 
-```text
-GET /api/v1/orders/?code=12345
-GET /api/v1/orders/?total=49.90
-```
-
-| Campo | Tipo | Observação |
-| --- | --- | --- |
-| `customer` | ID da conta | Cliente vinculado ao pedido |
-| `name_customer`, `phone` | texto | Obrigatórios |
-| `address` | texto | Obrigatório |
-| `house_number`, `observation` | texto | Opcionais |
-| `latitude`, `longitude` | decimal | Opcionais; localização de entrega |
-| `subtotal`, `rate_delivery`, `total`, `remaining` | decimal | Valores monetários do pedido e troco |
-| `payment_method` | texto | Opcional |
-| `itens` | JSON | Obrigatório; lista de produtos do pedido, cada um com `id`, `name`, `price` e `quantity` |
-| `status` | texto | Somente leitura; `pendente`, `entregue` ou `cancelado`; padrão `pendente` |
-| `code` | texto | Código de entrega de 4 caracteres, gerado para o pedido |
-| `created_at` | data e hora | Gerado pela API; somente leitura |
-
-O campo `itens` deve ser enviado como uma lista JSON. Exemplo:
+O campo `itens` é um JSON obrigatório e precisa ser enviado como uma **lista de objetos**, mantendo esta estrutura para cada produto:
 
 ```json
 [
@@ -360,59 +385,191 @@ O campo `itens` deve ser enviado como uma lista JSON. Exemplo:
 ]
 ```
 
-#### Confirmação de entrega
-
-Use esta rota quando o entregador concluir a entrega de um pedido. Ela valida o código informado pelo cliente e, se todas as regras forem atendidas, altera o status do pedido de `pendente` para `entregue`.
+Em `multipart/form-data`, envie o mesmo conteúdo serializado como texto no campo `itens`:
 
 ```text
-POST /api/v1/orders/{id}/confirm-delivery
+itens=[{"id":5,"name":"Mouse","price":19.00,"quantity":2}]
 ```
 
-> A rota não termina com `/`. Substitua `{id}` pelo identificador do pedido.
+> ✅ Não envie um objeto solto nem apenas IDs. Sempre envie um array `[]`, mesmo que o pedido tenha somente um item.
 
-Envie um JWT no header `Authorization` e um JSON contendo o código de entrega. O campo `code` é obrigatório e deve ter exatamente quatro caracteres:
+### Criar pedido
 
-```bash
-curl -X POST {{BASE_URL}}/api/v1/orders/{id}/confirm-delivery \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"code": "a1b2"}'
-```
-
-Quando a confirmação é aceita, a API retorna `200 OK`:
+`POST /api/v1/orders/` · 🔒 Autenticado
 
 ```json
 {
-  "detail": "Entrega confirmada com sucesso."
+  "name_customer": "João Silva",
+  "phone": "11999999999",
+  "address": "Rua das Flores",
+  "house_number": "123",
+  "observation": "Entregar na portaria",
+  "latitude": "-23.550520",
+  "longitude": "-46.633308",
+  "subtotal": "38.00",
+  "rate_delivery": "5.00",
+  "total": "43.00",
+  "remaining": "0.00",
+  "payment_method": "pix",
+  "itens": [
+    {
+      "id": 5,
+      "name": "Mouse",
+      "price": 19.00,
+      "quantity": 2
+    }
+  ]
 }
 ```
 
-A confirmação só é concluída quando todas as condições abaixo forem verdadeiras:
+Campos importantes:
 
-- O token pertence ao entregador vinculado ao pedido.
-- O pedido ainda está com o status `pendente`.
-- O valor enviado em `code` é igual ao código de entrega do pedido.
+| Campo                                                          | Descrição                                                         |
+| -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `name_customer`, `phone`, `address`                      | Dados de entrega obrigatórios.                                     |
+| `house_number`, `observation`, `latitude`, `longitude` | Dados complementares opcionais.                                     |
+| `subtotal`, `rate_delivery`, `total`                     | Valores monetários com duas casas decimais.                        |
+| `remaining`                                                  | Troco necessário. Use`0.00` quando não houver.                  |
+| `payment_method`                                             | Forma de pagamento, por exemplo`pix`, `dinheiro` ou `cartao`. |
+| `itens`                                                      | Lista JSON de itens, conforme estrutura acima.                      |
+| `code`, `status`, `store`, `customer`                  | Preenchidos pelo servidor.                                          |
 
-Se uma condição não for atendida, o status do pedido não é alterado. As respostas possíveis são:
+O pedido nasce com status `pendente` e recebe um código de entrega.
 
-| Status | Quando ocorre | Exemplo de resposta |
-| --- | --- | --- |
-| `200 OK` | Entrega confirmada e status alterado para `entregue`. | `{ "detail": "Entrega confirmada com sucesso." }` |
-| `400 Bad Request` | O `code` está ausente, não tem quatro caracteres, é inválido ou o pedido não está pendente. | `{ "detail": "Código inválido." }` |
-| `401 Unauthorized` | O token JWT não foi enviado ou não é válido. | — |
-| `403 Forbidden` | O usuário autenticado não é o entregador responsável pelo pedido. | `{ "detail": "Você não pode confirmar este pedido." }` |
-| `404 Not Found` | Não existe pedido com o `{id}` informado. | — |
+### Consultar e alterar pedidos
 
-## Postman
+| Método             | Rota                     | Descrição                             |
+| ------------------- | ------------------------ | --------------------------------------- |
+| `GET`             | `/api/v1/orders/`      | Lista pedidos dentro da loja do header. |
+| `POST`            | `/api/v1/orders/`      | Cria pedido.                            |
+| `GET`             | `/api/v1/orders/{id}/` | Detalha pedido.                         |
+| `PUT` / `PATCH` | `/api/v1/orders/{id}/` | Atualiza os campos permitidos.          |
+| `DELETE`          | `/api/v1/orders/{id}/` | Exclui pedido.                          |
 
-Há uma coleção pronta em [postman/My_Store_API.postman_collection.json](postman/My_Store_API.postman_collection.json). Importe-a no Postman, preencha as variáveis `email` e `password` e execute o login para armazenar automaticamente os tokens. Antes de criar ou atualizar uma loja com imagem, selecione um arquivo local no campo `image`.
+Filtros disponíveis: `?created_at=...`, `?code=AB12` e `?total=43.00`.
 
-## Administração
+### Confirmar entrega
 
-Com o servidor em execução, acesse `{{BASE_URL}}/adm/` usando o superusuário criado anteriormente.
+`POST /api/v1/orders/{id}/confirm-delivery` · 🔒 Autenticado
+
+> Atenção: esta rota específica **não** possui barra final.
+
+```json
+{ "code": "a1b2" }
+```
+
+O código deve ter exatamente quatro caracteres e precisa coincidir com o código gerado para o pedido. Somente pedidos `pendente` podem ser confirmados. Em caso de sucesso, o status muda para `entregue`.
+
+```json
+{ "detail": "Entrega confirmada com sucesso." }
+```
+
+---
+
+## 💰 Sales — vendas
+
+Uma venda é vinculada a um pedido, à conta autenticada e à loja enviada em `X-Store-ID`. A API define `account` e `store` no backend para impedir que o frontend atribua vendas a outra loja.
+
+### Criar venda
+
+`POST /api/v1/sales/` · 🔒 Proprietário da loja
+
+```json
+{
+  "order": 42,
+  "subtotal": "38.00",
+  "rate_delivery": "5.00",
+  "total": "43.00",
+  "remaining": "0.00",
+  "payment_method": "pix",
+  "collaborator": "Maria",
+  "observation": "Venda gerada no caixa",
+  "status": true
+}
+```
+
+Cada pedido aceita somente uma venda. `order` é uma relação um-para-um.
+
+### Operações disponíveis
+
+| Método                                 | Rota                    |
+| --------------------------------------- | ----------------------- |
+| `GET`, `POST`                       | `/api/v1/sales/`      |
+| `GET`, `PUT`, `PATCH`, `DELETE` | `/api/v1/sales/{id}/` |
+
+Em todas elas envie `X-Store-ID`. A loja precisa pertencer ao usuário autenticado, ou a API retornará `403 Forbidden`.
+
+---
+
+## 📌 Exemplo completo com cURL
+
+### 1. Login
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/authentication/token/" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@local.test","password":"12345678"}'
+```
+
+### 2. Listar produtos de uma loja
+
+```bash
+curl "http://localhost:8000/api/v1/products/" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN" \
+  -H "X-Store-ID: ABC123"
+```
+
+### 3. Criar pedido com itens
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/orders/" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN" \
+  -H "X-Store-ID: ABC123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name_customer":"João Silva",
+    "phone":"11999999999",
+    "address":"Rua das Flores",
+    "house_number":"123",
+    "subtotal":"38.00",
+    "rate_delivery":"5.00",
+    "total":"43.00",
+    "remaining":"0.00",
+    "payment_method":"pix",
+    "itens":[{"id":5,"name":"Mouse","price":19.00,"quantity":2}]
+  }'
+```
+
+---
+
+## 🧪 Coleção Postman
+
+O projeto inclui uma coleção pronta em [postman/My_Store_API.postman_collection.json](postman/My_Store_API.postman_collection.json).
+
+Importe-a no Postman, execute **Login - obter JWT** e preencha as variáveis da coleção (`store_id`, `category_id`, `customer_id`, `order_id` e `product_id`) à medida que criar os recursos. A coleção já envia automaticamente o `access_token` retornado pelo login.
+
+---
+
+## ⚠️ Respostas de erro mais comuns
+
+| Status               | Significado comum                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| `400 Bad Request`  | Campo ausente/inválido, imagem inválida, código de entrega incorreto ou pedido não pendente. |
+| `401 Unauthorized` | Token ausente, expirado ou inválido.                                                            |
+| `403 Forbidden`    | Falta do`X-Store-ID`, loja inexistente/sem acesso ou ação sem permissão.                    |
+| `404 Not Found`    | Recurso não encontrado dentro do escopo atual.                                                  |
+
+## 🧰 Tecnologias
+
+- Django 6 e Django REST Framework;
+- Simple JWT para autenticação;
+- PostgreSQL configurado via `DATABASE_URL`;
+- Supabase Storage para imagens de lojas, clientes e produtos;
+- `django-filter` para filtros;
+- WhiteNoise para arquivos estáticos e Jazzmin no painel administrativo.
 
 ---
 
 <div align="center">
-  <sub>My Store API · Django REST Framework</sub>
+  Feito para simplificar a operação de lojas. 🛒
 </div>
